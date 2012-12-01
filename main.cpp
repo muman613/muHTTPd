@@ -25,7 +25,9 @@ void    signal_sigint_handler(int signum)
 }
 
 
-#if 1
+/**
+ *  Generate the page on-the-fly...
+ */
 
 bool page3_stub(serverPage* pPage)
 {
@@ -42,6 +44,25 @@ bool page3_stub(serverPage* pPage)
     return true;
 }
 
+
+bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
+                    void* pData, size_t length)
+{
+    serverPage*     page = new serverPage( pageName );
+
+    page->SetImageData( pData, length );
+    page->SetMimeType( sMimeType );
+
+    pServer->AddPage( *page );
+
+    delete page;
+
+    return true;
+}
+
+#ifndef LOAD_FROM_FILE
+    #include "image/html_02_00_jpg.h"
+    #include "image/html_debuggerfe_ico.h"
 #endif
 
 void add_serverpages(myHTTPd* pServer)
@@ -56,6 +77,8 @@ void add_serverpages(myHTTPd* pServer)
     *page += wxT("<p>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("<br>");
+    *page += HTML::IMAGE( wxT("image.jpg"), wxT("My Face") );
+
 
     page->SaveToFile("/tmp/index.html");
 
@@ -78,21 +101,33 @@ void add_serverpages(myHTTPd* pServer)
 
     delete page;
 
-#if 0
-    page = new serverPage(wxT("/page2.html"));
+    page = new serverPage(wxT("/page3.html"), page3_stub);
 
-    page->LoadFromFile(wxT("html/template.html"));
+    pServer->AddPage( *page );
+
+    delete page;
+
+#if 1
+
+    add_image_page( pServer, wxT("/image.jpg"), wxT("image/jpeg"),
+                    html_002_00_jpg, html_002_00_jpg_len );
+    add_image_page( pServer, wxT("/favicon.ico"), wxT("image/ico"),
+                    html_debuggerfe_ico, html_debuggerfe_ico_len );
+
+#else
+    page = new serverPage( wxT("/favicon.ico") );
+//#ifdef  LOAD_FROM_FILE
+    page->SetImageFile( wxT("html/debuggerfe.ico") );
+//#else
+//    page->SetImageData( html_002_00_jpg, html_002_00_jpg_len );
+//    page->SetMimeType( wxT("image/jpeg"));
+//#endif
 
     pServer->AddPage( *page );
 
     delete page;
 #endif
 
-    page = new serverPage(wxT("/page3.html"), page3_stub);
-
-    pServer->AddPage( *page );
-
-    delete page;
 }
 
 int main() {

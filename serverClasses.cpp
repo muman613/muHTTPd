@@ -3,6 +3,7 @@
 #include <wx/textfile.h>
 #include <wx/filename.h>
 #include <wx/socket.h>
+#include <wx/mimetype.h>
 #include "serverClasses.h"
 #include "dbgutils.h"
 
@@ -11,8 +12,12 @@ static wxString sHTMLEol = wxT("\r\n");
 
 serverPage::serverPage()
 :   m_sMimeType(wxT("text/html")),
+    m_nRedirectTime(0),
     m_pPageData(0L),
-    m_cbFunc(0L)
+    m_pBinaryData(0L),
+    m_nBinaryDataSize(0L),
+    m_cbFunc(0L),
+    m_type(serverPage::PAGE_HTML)
 {
     // ctor
 }
@@ -20,19 +25,37 @@ serverPage::serverPage()
 serverPage::serverPage(const serverPage& copy)
 :   m_sPageName(copy.m_sPageName),
     m_sMimeType(copy.m_sMimeType),
+    m_sRedirect(copy.m_sRedirect),
+    m_nRedirectTime(copy.m_nRedirectTime),
     m_sHeadText(copy.m_sHeadText),
     m_sBodyText(copy.m_sBodyText),
     m_pPageData(copy.m_pPageData),
-    m_cbFunc(copy.m_cbFunc)
+    m_cbFunc(copy.m_cbFunc),
+    m_size(copy.m_size),
+    m_type(copy.m_type)
 {
     // ctor
+    /* deep copy the binary data if it exists */
+    if (copy.m_pBinaryData != 0) {
+        m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
+//      D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
+        memcpy(m_pBinaryData, copy.m_pBinaryData, copy.m_nBinaryDataSize);
+        m_nBinaryDataSize = copy.m_nBinaryDataSize;
+    } else {
+        m_pBinaryData       = 0L;
+        m_nBinaryDataSize   = 0L;
+    }
 }
 
-serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc, void* pPageData)
+serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
 :   m_sPageName(sPageName),
     m_sMimeType(wxT("text/html")),
-    m_pPageData(pPageData),
-    m_cbFunc(pCBFunc)
+    m_nRedirectTime(0),
+    m_pPageData(0L),
+    m_pBinaryData(0L),
+    m_nBinaryDataSize(0L),
+    m_cbFunc(pCBFunc),
+    m_type(serverPage::PAGE_HTML)
 {
     // ctor
 }
@@ -40,7 +63,41 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc, void* pPageDat
 serverPage::~serverPage()
 {
     // dtor
+//  D(debug("destructing %s page %s\n", (m_type == PAGE_HTML)?"HTML":"IMAGE", m_sPageName.c_str()));
+    Clear();
 }
+
+/**
+ *  Overloaded operator equal (assignment).
+ */
+
+serverPage&     serverPage::operator = (const serverPage& copy) {
+//  D(debug("serverPage::operator =(...)\n"));
+
+    m_sPageName         = copy.m_sPageName;
+    m_sMimeType         = copy.m_sMimeType;
+    m_sRedirect         = copy.m_sRedirect;
+    m_nRedirectTime     = copy.m_nRedirectTime;
+    m_sHeadText         = copy.m_sHeadText;
+    m_sBodyText         = copy.m_sBodyText;
+    m_pPageData         = copy.m_pPageData;
+    m_cbFunc            = copy.m_cbFunc;
+    m_size              = copy.m_size;
+    m_type              = copy.m_type;
+
+    if (copy.m_pBinaryData != 0) {
+        m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
+        D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
+        memcpy(m_pBinaryData, copy.m_pBinaryData, copy.m_nBinaryDataSize);
+        m_nBinaryDataSize = copy.m_nBinaryDataSize;
+    } else {
+        m_pBinaryData       = 0L;
+        m_nBinaryDataSize   = 0L;
+    }
+
+    return *this;
+}
+
 
 void* serverPage::GetPageData()
 {
@@ -125,22 +182,85 @@ void    serverPage::AddToBody(wxString sLine) {
     m_sBodyText.Add( sLine );
 }
 
+/**
+ *
+ */
+
 serverPage&     serverPage::operator +=(wxString sLine) {
     AddToBody(sLine);
     return *this;
 }
 
+/**
+ *
+ */
+
 void serverPage::SetTitle(wxString sTitle)
 {
+    D(debug("serverPage::SetTitle(%s)\n", sTitle.c_str()));
     m_sPageTitle = sTitle;
 }
 
-void serverPage::Clear() {
-    D(debug("serverPage::Clear()\n"));
-    m_sHeadText.Clear();
-    m_sBodyText.Clear();
+/**
+ *
+ */
+
+void serverPage::SetMimeType(wxString sMimeType)
+{
+    D(debug("serverPage::SetMimeType(%s)\n", sMimeType.c_str()));
+    m_sMimeType = sMimeType;
 }
 
+/**
+ *
+ */
+
+void  serverPage::SetRedirectTo(wxString sRedirect, int nSec)
+{
+    D(debug("serverPage::SetRedirectTo(%s, %n)\n", sRedirect.c_str(), nSec));
+
+    m_sRedirect     = sRedirect;
+    m_nRedirectTime = nSec;
+
+    return;
+}
+
+/**
+ *
+ */
+
+void serverPage::SetRefreshTime(int nSec) {
+    m_sRedirect.Clear();
+    m_nRedirectTime = nSec;
+    return;
+}
+
+/**
+ *  Restore page to 'pristine' state.
+ */
+
+void serverPage::Clear() {
+//  D(debug("serverPage::Clear()\n"));
+
+    m_sHeadText.Clear();
+    m_sBodyText.Clear();
+    m_sRedirect.Clear();
+
+    m_nRedirectTime = 0;
+    m_sMimeType     = wxT("text/html");
+    m_type          = PAGE_HTML;
+
+    if (m_pBinaryData != 0) {
+//      D(debug("-- freeing binary data from page %s\n", m_sPageName.c_str()));
+        free(m_pBinaryData);
+        m_pBinaryData       = 0L;
+        m_nBinaryDataSize   = 0L;
+    }
+}
+
+/**
+ *  Call the 'update' hook function.
+ */
 
 void serverPage::Update() {
     D(debug("serverPage::Update()\n"));
@@ -153,10 +273,18 @@ void serverPage::Update() {
     return;
 }
 
+/**
+ *
+ */
+
 PAGE_CALLBACK serverPage::GetCallback()
 {
     return m_cbFunc;
 }
+
+/**
+ *
+ */
 
 void serverPage::SetCallback(PAGE_CALLBACK cbFunc)
 {
@@ -173,18 +301,30 @@ bool serverPage::Send(wxSocketBase* pSocket)
     bool        bRes = false;
     char        buf[500];
     wxString    sHTML;
+    FILE*       fOut = 0L;
 
     D(debug("serverPage::Send(%p)\n", pSocket));
 
-    sHTML = HTML();
+    fOut = fopen("/tmp/dump.txt", "w");
+
+    if (m_type == PAGE_HTML) {
+        sHTML = HTML();
+    }
 
     sprintf(buf, "HTTP/1.1 200 OK\r\nserver: myHTTPd-1.0.0\r\ncontent-type: %s\r\ncontent-length: %ld\r\n\r\n",
             m_sMimeType.c_str(), m_size );
     pSocket->Write( buf, strlen(buf) );
-    pSocket->Write( sHTML.c_str(), sHTML.size());
+    fwrite(buf, strlen(buf), 1, fOut);
+
+    if (m_type == PAGE_HTML) {
+        pSocket->Write( sHTML.c_str(), sHTML.size());
+    } else {
+        pSocket->Write( m_pBinaryData, m_size );
+    }
 
     bRes = true;
 
+    fclose(fOut);
     return bRes;
 }
 
@@ -193,7 +333,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
  */
 
 wxString serverPage::HTML() {
-    wxString sHTMLText;
+    wxString sHTMLText, sTmp;
 
     sHTMLText  = wxT("<!DOCTYPE html>") + sHTMLEol;
     sHTMLText += wxT("<html>") + sHTMLEol;
@@ -204,6 +344,19 @@ wxString serverPage::HTML() {
     for (size_t x = 0 ; x < m_sHeadText.Count() ; x++) {
         sHTMLText += wxT("\t") + m_sHeadText[x] + sHTMLEol;
     }
+    /* If redirect is set, perform redirection */
+    if (!m_sRedirect.IsEmpty()) {
+        sTmp = wxT("\t<meta http-equiv=\"refresh\" content=\"") +
+                wxString::Format(wxT("%d"), m_nRedirectTime) +
+                wxT(";url=") + m_sRedirect + wxT("\">") + sHTMLEol;
+        sHTMLText += sTmp;
+    } else if (m_nRedirectTime != 0) {
+        sTmp = wxT("\t<meta http-equiv=\"refresh\" content=\"") +
+                wxString::Format(wxT("%d"), m_nRedirectTime) + wxT("\">") +
+                sHTMLEol;
+        sHTMLText += sTmp;
+    }
+
     sHTMLText += wxT("</head>") + sHTMLEol;
 
     /* generate the BODY section */
@@ -220,6 +373,71 @@ wxString serverPage::HTML() {
     m_size = sHTMLText.size();
 
     return sHTMLText;
+}
+
+/**
+ *
+ */
+
+bool serverPage::SetImageFile(wxString sFilename) {
+    bool        bRes = false;
+    wxString    sContentType;
+    wxFileName  fname(sFilename);
+    wxFileType* pType;
+    wxFile      pFile;
+
+    D(debug("serverPage::SetImageFile(%s)\n", sFilename.c_str()));
+
+    if (fname.FileExists()) {
+
+        pType = wxTheMimeTypesManager->GetFileTypeFromExtension(fname.GetExt());
+
+        if (pType->GetMimeType(&sContentType)) {
+            D(debug("Mime type reported = %s\n", sContentType.c_str()));
+            m_sMimeType = sContentType;
+            bRes = true;
+        }
+
+        if (pFile.Open( sFilename )) {
+            size_t fileSize = pFile.Length();
+
+            m_pBinaryData = (void*)malloc( fileSize );
+            D(debug("-- binary data @ %p\n", m_pBinaryData));
+            pFile.Read( m_pBinaryData, fileSize );
+            m_size = m_nBinaryDataSize = fileSize;
+            D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
+            pFile.Close();
+
+            m_type = PAGE_BINARY;
+        }
+
+    }
+
+    return bRes;
+}
+
+/**
+ *
+ */
+
+bool serverPage::SetImageData(void* pData, size_t length) {
+    D(debug("serverPage::SetImageData(%p, %ld)\n", pData, length));
+
+    /* if image data already exists, free it... */
+    if (m_pBinaryData != 0) {
+        free(m_pBinaryData);
+        m_pBinaryData       = 0L;
+        m_nBinaryDataSize   = 0L;
+    }
+
+    m_pBinaryData = (void*)malloc(length);
+    memcpy(m_pBinaryData, pData, length);
+
+    m_nBinaryDataSize   = length;
+    m_size              = length;
+    m_type              = PAGE_BINARY;
+
+    return true;
 }
 
 #ifdef  _DEBUG
@@ -355,4 +573,22 @@ namespace HTML {
     wxString LINK(wxString sText, wxString sURL) {
         return wxT("<a href=\"") + sURL + wxT("\">") + sText + wxT("</a>");
     }
+    wxString IMAGE(wxString sSrc, wxString sAlt, int width, int height) {
+        wxString sHTML;
+
+        sHTML = wxT("<img src =\"") + sSrc + wxT("\"");
+        if (!sAlt.IsEmpty()) {
+            sHTML += wxT(" alt=\"") + sAlt + wxT("\"");
+        }
+        if (width > 0) {
+            sHTML += wxT(" width=\"") + wxString::Format(wxT("%d"), width) + wxT("\"");
+        }
+        if (height > 0) {
+            sHTML += wxT(" height=\"") + wxString::Format(wxT("%d"), height) + wxT("\"");
+        }
+        sHTML += wxT(">");
+
+        return sHTML;
+    }
+
 };
