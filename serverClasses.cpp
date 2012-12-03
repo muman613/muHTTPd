@@ -7,8 +7,13 @@
 #include "serverClasses.h"
 #include "dbgutils.h"
 
+//#define ENABLE_DEBUG_SEND            1    // Enable header debugging
 
 static wxString sHTMLEol = wxT("\r\n");
+
+/**
+ *
+ */
 
 serverPage::serverPage()
 :   m_sMimeType(wxT("text/html")),
@@ -21,6 +26,10 @@ serverPage::serverPage()
 {
     // ctor
 }
+
+/**
+ *
+ */
 
 serverPage::serverPage(const serverPage& copy)
 :   m_sPageName(copy.m_sPageName),
@@ -47,6 +56,10 @@ serverPage::serverPage(const serverPage& copy)
     }
 }
 
+/**
+ *
+ */
+
 serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
 :   m_sPageName(sPageName),
     m_sMimeType(wxT("text/html")),
@@ -59,6 +72,10 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
 {
     // ctor
 }
+
+/**
+ *
+ */
 
 serverPage::~serverPage()
 {
@@ -274,7 +291,7 @@ void serverPage::Update() {
 }
 
 /**
- *
+ *  Get the callback function for the page.
  */
 
 PAGE_CALLBACK serverPage::GetCallback()
@@ -283,7 +300,7 @@ PAGE_CALLBACK serverPage::GetCallback()
 }
 
 /**
- *
+ *  Set the callback function for the page.
  */
 
 void serverPage::SetCallback(PAGE_CALLBACK cbFunc)
@@ -293,7 +310,8 @@ void serverPage::SetCallback(PAGE_CALLBACK cbFunc)
 }
 
 /**
- *
+ *  Send the page to the peer. Use wxSOCKET_WAITALL flag in order to ensure the
+ *  entire packet is sent in one burst.
  */
 
 bool serverPage::Send(wxSocketBase* pSocket)
@@ -301,20 +319,27 @@ bool serverPage::Send(wxSocketBase* pSocket)
     bool        bRes = false;
     char        buf[500];
     wxString    sHTML;
-    FILE*       fOut = 0L;
 
     D(debug("serverPage::Send(%p)\n", pSocket));
 
+#ifdef  ENABLE_DEBUG_SEND
     fOut = fopen("/tmp/dump.txt", "w");
+#endif
+
+    pSocket->SaveState();
+    pSocket->SetFlags(wxSOCKET_WAITALL);
 
     if (m_type == PAGE_HTML) {
         sHTML = HTML();
     }
 
-    sprintf(buf, "HTTP/1.1 200 OK\r\nserver: myHTTPd-1.0.0\r\ncontent-type: %s\r\ncontent-length: %ld\r\n\r\n",
+    sprintf(buf, "HTTP/1.1 200 OK\r\nServer: myHTTPd-1.0.0\r\nContent-Type: %s\r\nContent-Length: %ld\r\nConnection: Keep-Alive\r\n\r\n",
             m_sMimeType.c_str(), m_size );
     pSocket->Write( buf, strlen(buf) );
+
+#ifdef  ENABLE_DEBUG_SEND
     fwrite(buf, strlen(buf), 1, fOut);
+#endif
 
     if (m_type == PAGE_HTML) {
         pSocket->Write( sHTML.c_str(), sHTML.size());
@@ -324,7 +349,12 @@ bool serverPage::Send(wxSocketBase* pSocket)
 
     bRes = true;
 
+    pSocket->RestoreState();
+
+#ifdef  ENABLE_DEBUG_SEND
     fclose(fOut);
+#endif
+
     return bRes;
 }
 
@@ -376,7 +406,7 @@ wxString serverPage::HTML() {
 }
 
 /**
- *
+ *  Load image from file. Attempt to identify MIME type by file extension.
  */
 
 bool serverPage::SetImageFile(wxString sFilename) {
@@ -417,7 +447,7 @@ bool serverPage::SetImageFile(wxString sFilename) {
 }
 
 /**
- *
+ *  Set image data pointer and length.
  */
 
 bool serverPage::SetImageData(void* pData, size_t length) {
@@ -451,6 +481,14 @@ void serverPage::Dump(FILE* fOut)
     fprintf(fOut, "Page title     : %s\n", m_sPageTitle.c_str());
     fprintf(fOut, "MIME type      : %s\n", m_sMimeType.c_str());
     fprintf(fOut, "Content Length : %ld\n", m_size);
+
+    if (!m_sRedirect.IsEmpty()) {
+        fprintf(fOut, "Redirect URL   : %s\n", m_sRedirect.c_str());
+        fprintf(fOut, "Redirect Time  : %d Seconds\n", m_nRedirectTime);
+    } else if (m_nRedirectTime > 0) {
+        fprintf(fOut, "Refresh Time   : %d Seconds\n", m_nRedirectTime);
+    }
+
     fprintf(fOut, "\n");
     fprintf(fOut, "%s\n", sHTML.c_str());
 
@@ -528,7 +566,7 @@ bool serverCatalog::GetPageArray(wxArrayString& sNameArray)
 #ifdef _DEBUG
 
 /**
- *  Dump debugging information to console.
+ *  Dump debugging information to output file.
  */
 
 void serverCatalog::Dump(FILE* fOut)
@@ -550,6 +588,9 @@ void serverCatalog::Dump(FILE* fOut)
 }
 #endif // _DEBUG
 
+/**
+ *  Helper functions in namespace HTML.
+ */
 
 namespace HTML {
     wxString BOLD(wxString sText) {
@@ -590,5 +631,10 @@ namespace HTML {
 
         return sHTML;
     }
-
+    wxString BR() {
+        return wxT("<br>");
+    }
+    wxString P(wxString sText) {
+        return wxT("<p />") + sText;
+    }
 };

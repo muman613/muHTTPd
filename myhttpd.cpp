@@ -131,20 +131,23 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
             D(debug("%s\n", m_buf));
 #endif
 
-            parse_buffer();
+            if (count > 0) {
+                parse_buffer();
 
-            D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
-            D(debug("method %s url %s version %s\n",
-                    m_method.c_str(),
-                    m_url.c_str(),
-                    m_reqver.c_str()));
+                D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
+                D(debug("method %s url %s version %s\n",
+                        m_method.c_str(),
+                        m_url.c_str(),
+                        m_reqver.c_str()));
 
-            if (m_method == wxT("GET")) {
-                handle_get_method(pSocket);
+                if (m_method == wxT("GET")) {
+                    handle_get_method(pSocket);
+                } else {
+                    ReturnError(pSocket, 400, (char*)"Bad Request");
+                }
             } else {
                 ReturnError(pSocket, 400, (char*)"Bad Request");
             }
-
             bDone = true;
         }
 
