@@ -4,10 +4,13 @@
 #include <wx/arrstr.h>
 #include <wx/hashmap.h>
 
+//#include "myhttpd.h"
+
 /* forward declarations */
 class serverPage;
 class serverCatalog;
 class wxSocketBase;
+class HEADER_MAP;
 
 typedef bool (*PAGE_CALLBACK)(serverPage*);
 
@@ -91,8 +94,10 @@ protected:
 
     friend class serverCatalog;
 
-    wxString        HTML();         ///< Generate HTML from head & body sections.
-    void            Update();       ///< Call callback function to regenerate page.
+    wxString        HTML();                         ///< Generate HTML from
+                                                    ///<   head & body sections.
+    void            Update(HEADER_MAP* pMap = 0);   ///< Call callback function
+                                                    ///<   to regenerate page.
 
     wxString        m_sPageName;
     wxString        m_sMimeType;
@@ -113,6 +118,8 @@ protected:
     size_t          m_size;
 
     PAGE_TYPE       m_type;
+
+    HEADER_MAP*     m_pHeaders;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );
@@ -127,7 +134,7 @@ public:
     virtual ~serverCatalog();
 
     void            AddPage(serverPage& newPage);
-    serverPage*     GetPage(wxString sPageName);
+    serverPage*     GetPage(wxString sPageName, HEADER_MAP* pMap);
 
     bool            GetPageArray(wxArrayString& sNameArray);
 

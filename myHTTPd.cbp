@@ -47,6 +47,9 @@
 		<Unit filename="myhttpd.h" />
 		<Unit filename="serverClasses.cpp" />
 		<Unit filename="serverClasses.h" />
+		<Unit filename="strutils.cpp" />
+		<Unit filename="strutils.h" />
+		<Unit filename="types.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

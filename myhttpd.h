@@ -4,14 +4,19 @@
 #include <wx/wx.h>
 #include <wx/thread.h>
 #include <wx/socket.h>
+#include <wx/hashmap.h>
+#include <wx/file.h>
 
 #include "serverClasses.h"
 
 class myHTTPd;
 class myHTTPdThread;
 
+
+WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
+
 /**
- *
+ *  Class representing background thread of webserver.
  */
 
 class myHTTPdThread : public wxThread {
@@ -36,11 +41,18 @@ private:
     wxSocketServer*     m_sockServer;
     wxArrayString       m_requestArray;
 
+    wxString            m_sLocalHost;
+    wxString            m_sLocalPort;
+    wxString            m_sPeerHost;
+    wxString            m_sPeerPort;
+
     wxString            m_method;
     wxString            m_url;
     wxString            m_reqver;
 
     myHTTPd*            m_pParent;
+
+    HEADER_MAP          m_headers;
 };
 
 /**
@@ -56,13 +68,17 @@ class myHTTPd {
         bool            Stop();
 
         void            AddPage(serverPage& page);
-        serverPage*     GetPage(wxString sPageName);
+        serverPage*     GetPage(wxString sPageName, HEADER_MAP* pMap);
+
+        void            SetLogFile(wxString sLogFilename);
 
     protected:
         int             m_nPort;
 
         myHTTPdThread*  m_serverThread;
         serverCatalog   m_catalog;
+        wxString        m_sLogFilename;
+        wxFile*         m_pLogFile;
 
     private:
 };

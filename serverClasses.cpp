@@ -22,7 +22,8 @@ serverPage::serverPage()
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(0L),
-    m_type(serverPage::PAGE_HTML)
+    m_type(serverPage::PAGE_HTML),
+    m_pHeaders(0)
 {
     // ctor
 }
@@ -41,7 +42,8 @@ serverPage::serverPage(const serverPage& copy)
     m_pPageData(copy.m_pPageData),
     m_cbFunc(copy.m_cbFunc),
     m_size(copy.m_size),
-    m_type(copy.m_type)
+    m_type(copy.m_type),
+    m_pHeaders(0L)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -68,7 +70,8 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(pCBFunc),
-    m_type(serverPage::PAGE_HTML)
+    m_type(serverPage::PAGE_HTML),
+    m_pHeaders(0L)
 {
     // ctor
 }
@@ -279,12 +282,14 @@ void serverPage::Clear() {
  *  Call the 'update' hook function.
  */
 
-void serverPage::Update() {
+void serverPage::Update(HEADER_MAP* pMap) {
     D(debug("serverPage::Update()\n"));
 
     if (m_cbFunc != 0) {
         D(debug("-- calling call-back function!\n"));
+        m_pHeaders = pMap;
         (*m_cbFunc)(this);
+        m_pHeaders = 0L;
     }
 
     return;
@@ -533,7 +538,7 @@ void serverCatalog::AddPage(serverPage& newPage)
  *
  */
 
-serverPage*     serverCatalog::GetPage(wxString sPageName)
+serverPage*     serverCatalog::GetPage(wxString sPageName, HEADER_MAP* pMap)
 {
     if (m_pages.find(sPageName) != m_pages.end()) {
         serverPage* pPage = &m_pages[sPageName];

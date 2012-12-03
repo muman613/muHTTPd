@@ -44,6 +44,9 @@ bool page3_stub(serverPage* pPage)
     return true;
 }
 
+/**
+ *  Add an image page from memory to the page catalog.
+ */
 
 bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
                     void* pData, size_t length)
@@ -107,28 +110,18 @@ void add_serverpages(myHTTPd* pServer)
 
     delete page;
 
-#if 1
-
+    /* Add all images here */
     add_image_page( pServer, wxT("/image.jpg"), wxT("image/jpeg"),
                     html_002_00_jpg, html_002_00_jpg_len );
     add_image_page( pServer, wxT("/favicon.ico"), wxT("image/ico"),
                     html_debuggerfe_ico, html_debuggerfe_ico_len );
 
-#else
-    page = new serverPage( wxT("/favicon.ico") );
-//#ifdef  LOAD_FROM_FILE
-    page->SetImageFile( wxT("html/debuggerfe.ico") );
-//#else
-//    page->SetImageData( html_002_00_jpg, html_002_00_jpg_len );
-//    page->SetMimeType( wxT("image/jpeg"));
-//#endif
-
-    pServer->AddPage( *page );
-
-    delete page;
-#endif
-
+    return;
 }
+
+/**
+ *
+ */
 
 int main() {
     wxInitializer       wxInit;
