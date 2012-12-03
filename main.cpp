@@ -77,7 +77,7 @@ void add_serverpages(myHTTPd* pServer)
     *page += wxT("<p>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("<br>");
-    *page += HTML::IMAGE( wxT("image.jpg"), wxT("My Face") );
+    *page += HTML::IMAGE( wxT("image.jpg"), wxT("My Face"), 128, 128 );
 
 
     page->SaveToFile("/tmp/index.html");
