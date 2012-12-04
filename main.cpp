@@ -83,6 +83,7 @@ void add_serverpages(myHTTPd* pServer)
     *page += HTML::IMAGE( wxT("image.jpg"), wxT("My Face"), 128, 128 );
 
     page->AddCookie( wxT("ID"), wxT("muman613"), wxT("Tue 04-Dec-2012 12:00:00 GMT") );
+    page->AddCookie( wxT("FLAGS"), wxT("AEfnoYz"), wxT("Tue 04-Dec-2012 12:00:00 GMT") );
 
     page->SaveToFile("/tmp/index.html");
 

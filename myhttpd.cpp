@@ -36,6 +36,7 @@ myHTTPdThread::~myHTTPdThread()
 {
     // dtor
     delete [] m_buf;
+    Clear();
 }
 
 /**
@@ -100,14 +101,37 @@ void myHTTPdThread::parse_buffer()
         if ((nPos = sLine.Find(wxT(':'))) != wxNOT_FOUND) {
             sHdrName  = sLine.Mid(0, nPos);
             sHdrValue = sLine.Mid(nPos + 1).Trim(false);
-            D(debug("\tHeader [%s] Value [%s]\n", sHdrName.c_str(),
-                                                  sHdrValue.c_str()));
-            m_Request.m_headers[sHdrName] = sHdrValue;    // Store in the hash.
+
+            if (sHdrName.CmpNoCase(wxT("Cookie")) != 0) {
+                D(debug("\tHeader [%s] Value [%s]\n", sHdrName.c_str(),
+                                                      sHdrValue.c_str()));
+                m_Request.m_headers[sHdrName] = sHdrValue;    // Store in the hash.
+            } else {
+                wxStringTokenizer ckeToke(sHdrValue, wxT("=;"));
+                wxString sCookieID, sCookieVal;
+
+                D(debug("-- handing cookie header!\n"));
+                while (ckeToke.HasMoreTokens()) {
+                    sCookieID = ckeToke.GetNextToken().Trim(false);
+                    sCookieVal = ckeToke.GetNextToken().Trim(false);
+
+                    D(debug("cookie id [%s] value [%s]\n", sCookieID.c_str(), sCookieVal.c_str()));
+
+                    /* Add the cookie to the request cookie-array */
+                    myCookie newCookie( sCookieID, sCookieVal );
+
+                    m_Request.m_cookies.Add(newCookie);
+                }
+            }
         }
     }
 
     return;
 }
+
+/**
+ *
+ */
 
 void myHTTPdThread::Clear()
 {
@@ -120,6 +144,7 @@ void myHTTPdThread::Clear()
 
     return;
 }
+
 /**
  *
  */

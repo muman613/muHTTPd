@@ -1,3 +1,10 @@
+/**
+ *  @file       myhttpd.h
+ *  @author     Michael A. Uman
+ *  @date       December 3, 2012
+ */
+
+
 #ifndef MYHTTPD_H
 #define MYHTTPD_H
 
@@ -15,6 +22,9 @@ class myHTTPdThread;
 
 WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
 
+/**
+ *  Request class keeps the information about the request for the callback.
+ */
 
 class Request {
 public:
@@ -62,12 +72,10 @@ private:
 
     myHTTPd*            m_pParent;
     Request             m_Request;
-
-   // HEADER_MAP          m_headers;
 };
 
 /**
- *
+ *  The control class for the HTTP daemon.
  */
 
 class myHTTPd {
