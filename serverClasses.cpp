@@ -9,6 +9,7 @@
 
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY( ArrayOfCookies );
+WX_DEFINE_OBJARRAY( ArrayOfQueries );
 
 myCookie::myCookie( wxString sName, wxString sValue,  wxString sExpireDate,
                     wxString sPath, wxString sDomain, bool bSecure )
@@ -93,8 +94,7 @@ serverPage::serverPage()
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(0L),
-    m_type(serverPage::PAGE_HTML),
-    m_pHeaders(0)
+    m_type(serverPage::PAGE_HTML)
 {
     // ctor
 }
@@ -114,7 +114,6 @@ serverPage::serverPage(const serverPage& copy)
     m_cbFunc(copy.m_cbFunc),
     m_size(copy.m_size),
     m_type(copy.m_type),
-    m_pHeaders(0L),
     m_cookies(copy.m_cookies)
 {
     // ctor
@@ -142,8 +141,7 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(pCBFunc),
-    m_type(serverPage::PAGE_HTML),
-    m_pHeaders(0L)
+    m_type(serverPage::PAGE_HTML)
 {
     // ctor
 }
@@ -356,14 +354,12 @@ void serverPage::Clear() {
  *  Call the 'update' hook function.
  */
 
-void serverPage::Update(HEADER_MAP* pMap) {
+void serverPage::Update(Request* pMap) {
     D(debug("serverPage::Update()\n"));
 
     if (m_cbFunc != 0) {
         D(debug("-- calling call-back function!\n"));
-        m_pHeaders = pMap;
-        (*m_cbFunc)(this);
-        m_pHeaders = 0L;
+        (*m_cbFunc)(this, pMap);
     }
 
     return;
@@ -415,7 +411,11 @@ bool serverPage::Send(wxSocketBase* pSocket)
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
+#if 1
+    sHTTP += wxT("Connection: Close") + sHTMLEol;
+#else
     sHTTP += wxT("Connection: Keep-Alive") + sHTMLEol;
+#endif
 
     /* Add cookies to header */
     if (!m_cookies.IsEmpty()) {
@@ -643,11 +643,11 @@ void serverCatalog::AddPage(serverPage& newPage)
  *
  */
 
-serverPage*     serverCatalog::GetPage(wxString sPageName, HEADER_MAP* pMap)
+serverPage*     serverCatalog::GetPage(wxString sPageName, Request* pRequest)
 {
     if (m_pages.find(sPageName) != m_pages.end()) {
         serverPage* pPage = &m_pages[sPageName];
-        pPage->Update();
+        pPage->Update(pRequest);
         return pPage;
     }
 

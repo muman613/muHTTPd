@@ -15,6 +15,14 @@ class myHTTPdThread;
 
 WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
 
+
+class Request {
+public:
+    HEADER_MAP          m_headers;
+    ArrayOfCookies      m_cookies;
+    ArrayOfQueries      m_queries;
+};
+
 /**
  *  Class representing background thread of webserver.
  */
@@ -31,6 +39,8 @@ protected:
     void                handle_get_method(wxSocketBase* pSock);
 
     void                ReturnError(wxSocketBase* pSocket, int code, char* description);
+
+    void                Clear();
 
 private:
     void                parse_buffer();
@@ -51,8 +61,9 @@ private:
     wxString            m_reqver;
 
     myHTTPd*            m_pParent;
+    Request             m_Request;
 
-    HEADER_MAP          m_headers;
+   // HEADER_MAP          m_headers;
 };
 
 /**
@@ -68,7 +79,7 @@ class myHTTPd {
         bool            Stop();
 
         void            AddPage(serverPage& page);
-        serverPage*     GetPage(wxString sPageName, HEADER_MAP* pMap);
+        serverPage*     GetPage(wxString sPageName, Request* pRequest);
 
         void            SetLogFile(wxString sLogFilename);
 

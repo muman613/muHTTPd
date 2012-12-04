@@ -45,7 +45,8 @@ myHTTPdThread::~myHTTPdThread()
 void myHTTPdThread::parse_buffer()
 {
     char*       pos;
-    wxString    sLine;
+    wxString    sLine, sQuery;
+    int         nPos;
 
     D(debug("myHTTPdThread::parse_buffer()\n"));
 
@@ -70,16 +71,23 @@ void myHTTPdThread::parse_buffer()
     D(debug("-- found %ld lines\n", m_requestArray.Count()));
 
     /* parse the HTTP request. */
-    wxStringTokenizer tokens(m_requestArray[0], wxT(" "));
+    wxStringTokenizer tokens((m_requestArray[0] + wxT(" ")), wxT(" "));
 
     m_method    = tokens.GetNextToken();
     m_url       = tokens.GetNextToken();
     m_reqver    = tokens.GetNextToken();
 
+    if ((nPos = m_url.Find('?')) != wxNOT_FOUND) {
+        sQuery  = m_url.Mid(nPos + 1);
+        m_url   = m_url.Mid(0, nPos);
+
+        D(debug("-- query string = %s\n", sQuery.c_str()));
+    }
+
     if (m_url == wxT("/"))
         m_url = wxT("/index.html");
 
-    m_headers.clear();
+    m_Request.m_headers.clear();
 
     for (size_t hdr_line = 1 ; hdr_line < m_requestArray.Count() - 1 ; hdr_line++)
     {
@@ -94,13 +102,24 @@ void myHTTPdThread::parse_buffer()
             sHdrValue = sLine.Mid(nPos + 1).Trim(false);
             D(debug("\tHeader [%s] Value [%s]\n", sHdrName.c_str(),
                                                   sHdrValue.c_str()));
-            m_headers[sHdrName] = sHdrValue;    // Store in the hash.
+            m_Request.m_headers[sHdrName] = sHdrValue;    // Store in the hash.
         }
     }
 
     return;
 }
 
+void myHTTPdThread::Clear()
+{
+    D(debug("myHTTPdThread::Clear()\n"));
+
+    m_requestArray.Clear();
+    m_Request.m_cookies.Clear();
+    m_Request.m_headers.clear();
+    m_Request.m_queries.Clear();
+
+    return;
+}
 /**
  *
  */
@@ -108,8 +127,6 @@ void myHTTPdThread::parse_buffer()
 void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 {
     bool            bDone = false;
-//    wxString        sLocalHost, sLocalPort;
-//    wxString        sPeerHost, sPeerPort;
     wxSockAddress   *localInfo = 0L,
                     *peerInfo = 0L;
 
@@ -144,6 +161,8 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
         if (pSocket->WaitForRead(0, 1000)) {
             wxUint32 count;
+
+            Clear();
 
             /* Get HTTP request */
             pSocket->Read(m_buf, m_bufSize);
@@ -192,7 +211,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
 void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
 {
-    serverPage* pPage = m_pParent->GetPage( m_url, &m_headers );
+    serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
     if (pPage != 0L) {
         pPage->Send(pSocket);
@@ -369,8 +388,8 @@ void myHTTPd::AddPage(serverPage& page)
  *
  */
 
-serverPage* myHTTPd::GetPage(wxString sPageName, HEADER_MAP* pMap)
+serverPage* myHTTPd::GetPage(wxString sPageName, Request* pRequest)
 {
     D(debug("myHTTPd::GetPage(%s)\n", sPageName.c_str()));
-    return m_catalog.GetPage( sPageName, pMap );
+    return m_catalog.GetPage( sPageName, pRequest );
 }

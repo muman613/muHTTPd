@@ -29,7 +29,7 @@ void    signal_sigint_handler(int signum)
  *  Generate the page on-the-fly...
  */
 
-bool page3_stub(serverPage* pPage)
+bool page3_stub(serverPage* pPage, Request* pRequest)
 {
     D(debug("index_stub(%p)\n", pPage));
 

@@ -11,8 +11,9 @@ class serverPage;
 class serverCatalog;
 class wxSocketBase;
 class HEADER_MAP;
+class Request;
 
-typedef bool (*PAGE_CALLBACK)(serverPage*);
+typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
 
 #define     ADD_PAGE(server, name, stub)                                        \
     {                                                                           \
@@ -72,6 +73,19 @@ protected:
 };
 
 WX_DECLARE_OBJARRAY( myCookie, ArrayOfCookies );
+
+
+class myQuery {
+public:
+    myQuery(wxString sId, wxString sValue) : m_sId(sId), m_sValue(sValue) {}
+    virtual ~myQuery() {}
+
+    wxString m_sId;
+    wxString m_sValue;
+};
+
+WX_DECLARE_OBJARRAY( myQuery, ArrayOfQueries );
+
 
 /**
  *  Class encapsulates an HTML page.
@@ -138,7 +152,7 @@ protected:
 
     wxString        HTML();                         ///< Generate HTML from
                                                     ///<   head & body sections.
-    void            Update(HEADER_MAP* pMap = 0);   ///< Call callback function
+    void            Update(Request* pRequest = 0);  ///< Call callback function
                                                     ///<   to regenerate page.
 
     wxString        m_sPageName;
@@ -161,7 +175,7 @@ protected:
 
     PAGE_TYPE       m_type;
 
-    HEADER_MAP*     m_pHeaders;
+//    HEADER_MAP*     m_pHeaders;
     ArrayOfCookies  m_cookies;
 };
 
@@ -177,7 +191,7 @@ public:
     virtual ~serverCatalog();
 
     void            AddPage(serverPage& newPage);
-    serverPage*     GetPage(wxString sPageName, HEADER_MAP* pMap);
+    serverPage*     GetPage(wxString sPageName, Request* pRequest);
 
     bool            GetPageArray(wxArrayString& sNameArray);
 
