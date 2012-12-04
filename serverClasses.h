@@ -38,6 +38,42 @@ namespace HTML {
 };
 
 /**
+ *
+ */
+
+class myCookie {
+public:
+    myCookie(wxString sName, wxString sValue,
+             wxString sExpireDate = wxEmptyString,
+             wxString sPath       = wxEmptyString,
+             wxString sDomain     = wxEmptyString,
+             bool bSecure         = false);
+    myCookie(const myCookie& copy);
+    virtual ~myCookie();
+
+    myCookie& operator =(const myCookie& copy);
+
+    wxString        header();
+
+    wxString        name();
+    wxString        value();
+    wxString        expire_date();
+    wxString        path();
+    wxString        domain();
+    bool            secure();
+
+protected:
+    wxString        m_sName;
+    wxString        m_sValue;
+    wxString        m_sExpireDate;
+    wxString        m_sPath;
+    wxString        m_sDomain;
+    bool            m_bSecure;
+};
+
+WX_DECLARE_OBJARRAY( myCookie, ArrayOfCookies );
+
+/**
  *  Class encapsulates an HTML page.
  */
 
@@ -85,6 +121,12 @@ public:
 
     bool            Send(wxSocketBase* pSocket);
 
+    bool            AddCookie(wxString sName, wxString sValue,
+                              wxString sExpireDate  = wxEmptyString,
+                              wxString sPath        = wxEmptyString,
+                              wxString sDomain      = wxEmptyString,
+                              bool bSecure          = false);
+
 protected:
 
     typedef enum {
@@ -120,6 +162,7 @@ protected:
     PAGE_TYPE       m_type;
 
     HEADER_MAP*     m_pHeaders;
+    ArrayOfCookies  m_cookies;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );

@@ -7,9 +7,80 @@
 #include "serverClasses.h"
 #include "dbgutils.h"
 
+#include <wx/arrimpl.cpp>
+WX_DEFINE_OBJARRAY( ArrayOfCookies );
+
+myCookie::myCookie( wxString sName, wxString sValue,  wxString sExpireDate,
+                    wxString sPath, wxString sDomain, bool bSecure )
+:   m_sName(sName), m_sValue(sValue),
+    m_sExpireDate(sExpireDate), m_sPath(sPath),
+    m_sDomain(sDomain), m_bSecure(bSecure)
+{
+    // ctor
+}
+
+myCookie::myCookie(const myCookie& copy)
+:   m_sName(copy.m_sName), m_sValue(copy.m_sValue),
+    m_sExpireDate(copy.m_sExpireDate), m_sPath(copy.m_sPath),
+    m_sDomain(copy.m_sDomain), m_bSecure(copy.m_bSecure)
+{
+    // copy ctor
+}
+
+myCookie::~myCookie()
+{
+    // dtor
+}
+
+wxString myCookie::header() {
+    wxString sHeader;
+
+    sHeader = wxT("Set-Cookie: ") + m_sName + wxT("=") + m_sValue + wxT(";");
+    if (!m_sExpireDate.IsEmpty()) {
+        sHeader += wxT(" expires=") + m_sExpireDate + wxT(";");
+    }
+    if (!m_sPath.IsEmpty()) {
+        sHeader += wxT(" path=") + m_sPath + wxT(";");
+    }
+    if (!m_sDomain.IsEmpty()) {
+        sHeader += wxT(" domain=") + m_sDomain + wxT(";");
+    }
+    if (m_bSecure) {
+        sHeader += wxT(" secure");
+    }
+
+    return sHeader;
+}
+
+wxString myCookie::name() {
+    return m_sName;
+}
+
+
+wxString myCookie::value() {
+    return m_sValue;
+}
+
+wxString myCookie::expire_date() {
+    return m_sExpireDate;
+}
+
+wxString myCookie::path() {
+    return m_sPath;
+}
+
+wxString myCookie::domain() {
+    return m_sDomain;
+}
+
+bool myCookie::secure() {
+    return m_bSecure;
+}
+
 //#define ENABLE_DEBUG_SEND            1    // Enable header debugging
 
 static wxString sHTMLEol = wxT("\r\n");
+static wxString sServerID = wxT("myHTTPd-1.0.0");
 
 /**
  *
@@ -43,7 +114,8 @@ serverPage::serverPage(const serverPage& copy)
     m_cbFunc(copy.m_cbFunc),
     m_size(copy.m_size),
     m_type(copy.m_type),
-    m_pHeaders(0L)
+    m_pHeaders(0L),
+    m_cookies(copy.m_cookies)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -104,6 +176,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_cbFunc            = copy.m_cbFunc;
     m_size              = copy.m_size;
     m_type              = copy.m_type;
+    m_cookies           = copy.m_cookies;
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
@@ -265,6 +338,7 @@ void serverPage::Clear() {
     m_sHeadText.Clear();
     m_sBodyText.Clear();
     m_sRedirect.Clear();
+    m_cookies.Clear();
 
     m_nRedirectTime = 0;
     m_sMimeType     = wxT("text/html");
@@ -322,7 +396,7 @@ void serverPage::SetCallback(PAGE_CALLBACK cbFunc)
 bool serverPage::Send(wxSocketBase* pSocket)
 {
     bool        bRes = false;
-    char        buf[500];
+    wxString    sHTTP;
     wxString    sHTML;
 
     D(debug("serverPage::Send(%p)\n", pSocket));
@@ -338,12 +412,26 @@ bool serverPage::Send(wxSocketBase* pSocket)
         sHTML = HTML();
     }
 
-    sprintf(buf, "HTTP/1.1 200 OK\r\nServer: myHTTPd-1.0.0\r\nContent-Type: %s\r\nContent-Length: %ld\r\nConnection: Keep-Alive\r\n\r\n",
-            m_sMimeType.c_str(), m_size );
-    pSocket->Write( buf, strlen(buf) );
+    sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
+    sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
+    sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
+    sHTTP += wxT("Connection: Keep-Alive") + sHTMLEol;
+
+    /* Add cookies to header */
+    if (!m_cookies.IsEmpty()) {
+        D(debug("-- adding cookies to header!\n"));
+        for (size_t x = 0 ; x < m_cookies.Count() ; x++) {
+            sHTTP += m_cookies[x].header() + sHTMLEol;
+        }
+    }
+
+    sHTTP += sHTMLEol;
+
+    /* Write the HTTP header... */
+    pSocket->Write( sHTTP.c_str(), sHTTP.Length() );
 
 #ifdef  ENABLE_DEBUG_SEND
-    fwrite(buf, strlen(buf), 1, fOut);
+    fwrite(sHTTP.c_str(), sHTTP.Length(), 1, fOut);
 #endif
 
     if (m_type == PAGE_HTML) {
@@ -471,6 +559,23 @@ bool serverPage::SetImageData(void* pData, size_t length) {
     m_nBinaryDataSize   = length;
     m_size              = length;
     m_type              = PAGE_BINARY;
+
+    return true;
+}
+
+/**
+ *  Add a cookie to the page.
+ */
+
+bool serverPage::AddCookie(wxString sName, wxString sValue,
+                           wxString sExpireDate, wxString sPath,
+                           wxString sDomain, bool bSecure)
+{
+    myCookie    newCookie(sName, sValue, sExpireDate, sPath, sDomain, bSecure);
+
+    D(debug("serverPage::AddCookie()\n"));
+
+    m_cookies.Add(newCookie);
 
     return true;
 }
