@@ -484,7 +484,11 @@ wxString serverPage::HTML() {
 
     /* generate the BODY section */
 
-    sHTMLText += wxT("<body>") + sHTMLEol;
+    if (m_flags & FLAG_PRINT) {
+        sHTMLText += wxT("<body onload=\"window.print()\">") + sHTMLEol;
+    } else {
+    	sHTMLText += wxT("<body>") + sHTMLEol;
+    }
     for (size_t x = 0 ; x < m_sBodyText.Count() ; x++) {
         sHTMLText += wxT("\t") + m_sBodyText[x] + sHTMLEol;
     }
@@ -578,6 +582,14 @@ bool serverPage::AddCookie(wxString sName, wxString sValue,
     m_cookies.Add(newCookie);
 
     return true;
+}
+
+void serverPage::SetFlags(wxUint32 flags) {
+    m_flags |= flags;
+}
+
+void serverPage::ClearFlags(wxUint32 flags) {
+    m_flags &= flags;
 }
 
 #ifdef  _DEBUG

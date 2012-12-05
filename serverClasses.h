@@ -74,6 +74,9 @@ protected:
 
 WX_DECLARE_OBJARRAY( myCookie, ArrayOfCookies );
 
+/**
+ *  Class used to store query name/value pairs.
+ */
 
 class myQuery {
 public:
@@ -93,6 +96,10 @@ WX_DECLARE_OBJARRAY( myQuery, ArrayOfQueries );
 
 class serverPage {
 public:
+    enum {
+        FLAG_PRINT = (1L << 0),
+    };
+
     serverPage();
     serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc = 0);
     serverPage(const serverPage& copy);
@@ -141,6 +148,9 @@ public:
                               wxString sDomain      = wxEmptyString,
                               bool bSecure          = false);
 
+    void            SetFlags(wxUint32 flags);
+    void            ClearFlags(wxUint32 flags);
+
 protected:
 
     typedef enum {
@@ -174,6 +184,7 @@ protected:
     size_t          m_size;
 
     PAGE_TYPE       m_type;
+    wxUint32        m_flags;
 
 //    HEADER_MAP*     m_pHeaders;
     ArrayOfCookies  m_cookies;

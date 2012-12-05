@@ -6,11 +6,76 @@
 
 #include <wx/wx.h>
 #include <wx/tokenzr.h>
+#include <wx/uri.h>
+
+
 #include "myhttpd.h"
 #include "dbgutils.h"
 
 //#define DUMP_RAW_REQUEST          1
 
+/**
+ *  Find a cookie by name.
+ */
+
+wxString Request::FindCookie(wxString sName) {
+    wxString sResult = wxEmptyString;
+
+    for (size_t x = 0 ; x < m_cookies.Count() ; x++) {
+        if (m_cookies[x].name() == sName) {
+            sResult = m_cookies[x].value();
+            break;
+        }
+    }
+
+    return sResult;
+}
+
+/**
+ *  Find a request header by name.
+ */
+
+wxString Request::FindHeader(wxString sHeader) {
+    wxString sResult = wxEmptyString;
+    HEADER_MAP::iterator it;
+
+    for (it = m_headers.begin() ; it != m_headers.end() ; it++) {
+        if (it->first == sHeader) {
+            sResult = it->second;
+            break;
+        }
+    }
+
+    return sResult;
+}
+
+/**
+ *  Find a query value by name.
+ */
+
+wxString Request::FindQuery(wxString sName) {
+    wxString sResult = wxEmptyString;
+
+    for (size_t i = 0 ; i < m_queries.Count() ; i++) {
+        if (m_queries[i].m_sId == sName) {
+            sResult = m_queries[i].m_sValue;
+            break;
+        }
+    }
+
+    return sResult;
+}
+
+/**
+ *  Return the referring URL.
+ */
+
+wxString Request::Referer()
+{
+    return FindHeader( wxT("Referer") );
+}
+
+/*----------------------------------------------------------------------------*/
 
 int myHTTPdThread::m_bufSize = 5000;    // Maximum request size
 
@@ -72,17 +137,43 @@ void myHTTPdThread::parse_buffer()
     D(debug("-- found %ld lines\n", m_requestArray.Count()));
 
     /* parse the HTTP request. */
-    wxStringTokenizer tokens((m_requestArray[0] + wxT(" ")), wxT(" "));
+    wxStringTokenizer tokens(m_requestArray[0], wxT(" "));
 
     m_method    = tokens.GetNextToken();
     m_url       = tokens.GetNextToken();
     m_reqver    = tokens.GetNextToken();
+
+    /* find all '+' in url and replace with 'space' */
+    m_url.Replace( wxT("+"), wxT(" ") );
+
+    wxURI   newUri(m_url);
+
+    m_url = newUri.BuildUnescapedURI();
 
     if ((nPos = m_url.Find('?')) != wxNOT_FOUND) {
         sQuery  = m_url.Mid(nPos + 1);
         m_url   = m_url.Mid(0, nPos);
 
         D(debug("-- query string = %s\n", sQuery.c_str()));
+
+        wxStringTokenizer qryToke( sQuery, wxT("&") );
+
+        while (qryToke.HasMoreTokens()) {
+            wxString sPair = qryToke.GetNextToken();
+            wxString sID, sVal;
+
+            D(debug("found token %s\n", sPair.c_str()));
+
+            if ((nPos = sPair.Find('=')) != wxNOT_FOUND) {
+                sID  = sPair.Mid(0, nPos);
+                sVal = sPair.Mid(nPos + 1);
+
+                D(debug("query id %s val %s\n", sID.c_str(), sVal.c_str()));
+                myQuery newQuery( sID, sVal );
+
+                m_Request.m_queries.Add( newQuery );
+            }
+        }
     }
 
     if (m_url == wxT("/"))

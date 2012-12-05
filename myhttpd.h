@@ -28,6 +28,12 @@ WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
 
 class Request {
 public:
+    wxString            Referer();
+
+    wxString            FindCookie(wxString sName);
+    wxString            FindHeader(wxString sHeader);
+    wxString            FindQuery(wxString sName);
+
     HEADER_MAP          m_headers;
     ArrayOfCookies      m_cookies;
     ArrayOfQueries      m_queries;
