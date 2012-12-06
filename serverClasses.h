@@ -35,7 +35,10 @@ namespace HTML {
     wxString HEADING3(wxString sText);
     wxString CENTER(wxString sText);
     wxString LINK(wxString sText, wxString sURL);
-    wxString IMAGE(wxString sSrc, wxString sAlt = wxEmptyString, int width = 0, int height = 0);
+    wxString IMAGE(wxString sSrc, wxString sAlt = wxEmptyString,
+                   int width = 0, int height = 0);
+    wxString SELECT(wxString sName, const wxArrayString& sOptions, wxString sDefault = wxEmptyString);
+    wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
 };
 
 /**

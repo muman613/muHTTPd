@@ -1,3 +1,10 @@
+/**
+ *  @file       serverClasses.cpp
+ *  @author     Michael A. Uman
+ *  @date       December 5, 2012
+ *  @brief      Classes used by myHTTPd to represent pages, cookies, & queries.
+ */
+
 #include <wx/wx.h>
 #include <wx/arrstr.h>
 #include <wx/textfile.h>
@@ -10,6 +17,10 @@
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY( ArrayOfCookies );
 WX_DEFINE_OBJARRAY( ArrayOfQueries );
+
+/**
+ *  Cookie class, used to store cookies.
+ */
 
 myCookie::myCookie( wxString sName, wxString sValue,  wxString sExpireDate,
                     wxString sPath, wxString sDomain, bool bSecure )
@@ -32,6 +43,10 @@ myCookie::~myCookie()
 {
     // dtor
 }
+
+/**
+ *  Return a string containing the cookie header.
+ */
 
 wxString myCookie::header() {
     wxString sHeader;
@@ -94,7 +109,8 @@ serverPage::serverPage()
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(0L),
-    m_type(serverPage::PAGE_HTML)
+    m_type(serverPage::PAGE_HTML),
+    m_flags(0L)
 {
     // ctor
 }
@@ -114,6 +130,7 @@ serverPage::serverPage(const serverPage& copy)
     m_cbFunc(copy.m_cbFunc),
     m_size(copy.m_size),
     m_type(copy.m_type),
+    m_flags(copy.m_flags),
     m_cookies(copy.m_cookies)
 {
     // ctor
@@ -141,7 +158,8 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
     m_pBinaryData(0L),
     m_nBinaryDataSize(0L),
     m_cbFunc(pCBFunc),
-    m_type(serverPage::PAGE_HTML)
+    m_type(serverPage::PAGE_HTML),
+    m_flags(0L)
 {
     // ctor
 }
@@ -303,12 +321,12 @@ void serverPage::SetMimeType(wxString sMimeType)
 }
 
 /**
- *
+ *  Function sets a redirect URL and a time.
  */
 
 void  serverPage::SetRedirectTo(wxString sRedirect, int nSec)
 {
-    D(debug("serverPage::SetRedirectTo(%s, %n)\n", sRedirect.c_str(), nSec));
+    D(debug("serverPage::SetRedirectTo(%s, %d)\n", sRedirect.c_str(), nSec));
 
     m_sRedirect     = sRedirect;
     m_nRedirectTime = nSec;
@@ -317,7 +335,7 @@ void  serverPage::SetRedirectTo(wxString sRedirect, int nSec)
 }
 
 /**
- *
+ *  Function sets a refresh time.
  */
 
 void serverPage::SetRefreshTime(int nSec) {
@@ -584,12 +602,20 @@ bool serverPage::AddCookie(wxString sName, wxString sValue,
     return true;
 }
 
+/**
+ *
+ */
+
 void serverPage::SetFlags(wxUint32 flags) {
     m_flags |= flags;
 }
 
+/**
+ *
+ */
+
 void serverPage::ClearFlags(wxUint32 flags) {
-    m_flags &= flags;
+    m_flags &= ~flags;
 }
 
 #ifdef  _DEBUG
@@ -758,5 +784,46 @@ namespace HTML {
     }
     wxString P(wxString sText) {
         return wxT("<p />") + sText;
+    }
+
+    wxString SELECT(wxString sName, const wxArrayString& sOptions, wxString sDefault) {
+        wxString sResult;
+
+        sResult = wxT("<select name=\"") + sName + wxT("\">");
+        for (size_t i = 0 ; i < sOptions.Count() ; i++) {
+            if (!sDefault.IsEmpty() && (sDefault == sOptions[i])) {
+                sResult += wxT("<option selected>") + sOptions[i] + wxT("</option>");
+            } else {
+                sResult += wxT("<option>") + sOptions[i] + wxT("</option>");
+            }
+        }
+        sResult += wxT("</select>");
+
+        return sResult;
+    }
+
+    wxString FILEBOX(wxString sFilename, wxString sCaption) {
+        wxString        sHTML;
+        wxTextFile      file( sFilename );
+
+        if (file.Open()) {
+//            sHTML += wxT("<table style=\"background-color: #DDDDDD; border-style: double; width: 80%; margin-left: 10%; margin-right: 10%;\">\n");
+            sHTML += wxT("<table style=\"background-color: #DDDDDD; border-style: double; width: 100%; \">\n");
+            if (!sCaption.IsEmpty()) {
+                sHTML += wxT("<caption><h3>") + sCaption + wxT("</h3></caption>\n");
+            }
+            sHTML += wxT("<tr><td><pre>\n");
+            for (size_t x = 0 ; x < file.GetLineCount() ; x++) {
+                wxString sTmp = file[x];
+                sTmp.Replace(wxT("<"), wxT("&lt;"));
+                sTmp.Replace(wxT(">"), wxT("&gt;"));
+                sTmp.Replace(wxT("\t"), wxT("&nbsp;&nbsp;&nbsp;&nbsp;"));
+                sHTML += sTmp + wxT("\n");
+            }
+            sHTML += wxT("</pre></td></tr>\n");
+            sHTML += wxT("</table>\n");
+        }
+
+        return sHTML;
     }
 };
