@@ -124,6 +124,7 @@ serverPage::serverPage(const serverPage& copy)
     m_sMimeType(copy.m_sMimeType),
     m_sRedirect(copy.m_sRedirect),
     m_nRedirectTime(copy.m_nRedirectTime),
+    m_sJScriptText(copy.m_sJScriptText),
     m_sHeadText(copy.m_sHeadText),
     m_sBodyText(copy.m_sBodyText),
     m_pPageData(copy.m_pPageData),
@@ -187,6 +188,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_sRedirect         = copy.m_sRedirect;
     m_nRedirectTime     = copy.m_nRedirectTime;
     m_sHeadText         = copy.m_sHeadText;
+    m_sJScriptText      = copy.m_sJScriptText;
     m_sBodyText         = copy.m_sBodyText;
     m_pPageData         = copy.m_pPageData;
     m_cbFunc            = copy.m_cbFunc;
@@ -273,15 +275,52 @@ bool serverPage::SaveToFile(wxString sFilename)
     return bRes;
 }
 
+/**
+ *
+ */
+
 void     serverPage::SetPageName(wxString sPageName)
 {
     m_sPageName = sPageName;
 }
 
+/**
+ *
+ */
+
 wxString serverPage::GetPageName()
 {
     return m_sPageName;
 }
+
+/**
+ *
+ */
+
+bool serverPage::LoadJScript(wxString sScriptName) {
+    bool            bRes = false;
+    wxTextFile      file(sScriptName);
+
+    if (file.Open()) {
+        for (size_t i = 0 ; i < file.GetLineCount() ; i++) {
+            AddToScript( file[i] );
+        }
+        bRes = true;
+    }
+
+    return bRes;
+}
+/**
+ *
+ */
+
+void serverPage::AddToScript(wxString sLine) {
+    m_sJScriptText.Add( sLine);
+}
+
+/**
+ *
+ */
 
 void     serverPage::AddToHead(wxString sLine) {
     m_sHeadText.Add( sLine );
@@ -352,6 +391,7 @@ void serverPage::Clear() {
 //  D(debug("serverPage::Clear()\n"));
 
     m_sHeadText.Clear();
+    m_sJScriptText.Clear();
     m_sBodyText.Clear();
     m_sRedirect.Clear();
     m_cookies.Clear();
@@ -496,6 +536,16 @@ wxString serverPage::HTML() {
                 wxString::Format(wxT("%d"), m_nRedirectTime) + wxT("\">") +
                 sHTMLEol;
         sHTMLText += sTmp;
+    }
+
+    /* Send any JScript code */
+
+    if (!m_sJScriptText.IsEmpty()) {
+        sHTMLText += wxT("<script type=\"text/javascript\">") + sHTMLEol;
+        for (size_t x = 0 ; x < m_sJScriptText.Count(); x++) {
+            sHTMLText += wxT("\t") + m_sJScriptText[x] + sHTMLEol;
+        }
+        sHTMLText += wxT("</script>") + sHTMLEol;
     }
 
     sHTMLText += wxT("</head>") + sHTMLEol;

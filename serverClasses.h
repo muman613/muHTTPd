@@ -126,6 +126,7 @@ public:
     void            SetRefreshTime(int nSec = 2);
 
     void            AddToHead(wxString sLine);
+    void            AddToScript(wxString sLine);
     void            AddToBody(wxString sLine);
 
     void*           GetPageData();
@@ -136,6 +137,8 @@ public:
 
     PAGE_CALLBACK   GetCallback();
     void            SetCallback(PAGE_CALLBACK cbFunc);
+
+    bool            LoadJScript(wxString sFilename);
 
 #ifdef  _DEBUG
     void            Dump(FILE* fOut);
@@ -175,6 +178,7 @@ protected:
     wxString        m_sRedirect;
     int             m_nRedirectTime;
 
+    wxArrayString   m_sJScriptText;
     wxArrayString   m_sHeadText;
     wxArrayString   m_sBodyText;
 

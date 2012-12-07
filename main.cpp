@@ -7,7 +7,7 @@
 #include "serverClasses.h"
 #include "lastusedlist.h"
 #include "myhttpd.h"
-
+#include "mytable.h"
 
 bool bDone = false;
 
@@ -24,7 +24,26 @@ void    signal_sigint_handler(int signum)
     return;
 }
 
+wxString generate_table() {
+    myTable     table(2, 2);
+    wxString    sHTML;
 
+    D(debug("test_table()\n"));
+    table.set_border(2);
+    table.set_row_class(1, wxT("even"));
+
+    table.cell(0, 0) = myCell( wxT("Cell #1") );
+    table.cell(0, 1) = myCell( wxT("Cell #2") );
+    table.cell(1, 0) = myCell( wxT("User name :") );
+    //table.dump();
+    table.cell(0,0).Class( wxT("special") );
+
+    sHTML = table.HTML();
+
+    printf("%s", sHTML.c_str());
+
+    return sHTML;
+}
 /**
  *  Generate the page on-the-fly...
  */
@@ -99,6 +118,7 @@ void add_serverpages(myHTTPd* pServer)
 
     *page += HTML::CENTER(HTML::HEADING1(wxT("Page 1")));
     *page += wxT("<p>This page was generated!");
+    page->SetRedirectTo( wxT("index.html"), 10);
 
     page->Dump( stdout );
 
@@ -145,4 +165,6 @@ int main() {
     webServer.Stop();
 
     signal( SIGINT, SIG_DFL );
+
+	return 0L;
 }
