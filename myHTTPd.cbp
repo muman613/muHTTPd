@@ -40,13 +40,19 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="dbgutils.cpp" />
+		<Unit filename="dbgutils.h" />
 		<Unit filename="lastusedlist.cpp" />
 		<Unit filename="lastusedlist.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="myhttpd.cpp" />
 		<Unit filename="myhttpd.h" />
+		<Unit filename="mytable.cpp" />
+		<Unit filename="mytable.h" />
 		<Unit filename="serverClasses.cpp" />
 		<Unit filename="serverClasses.h" />
+		<Unit filename="webpages.cpp" />
+		<Unit filename="webpages.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
