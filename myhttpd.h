@@ -59,7 +59,8 @@ protected:
     void                Clear();
 
 private:
-    void                parse_buffer();
+    void                parse_request();
+    bool                receive_request(wxSocketBase* pSocket);
 
     static int          m_bufSize;
     wxUint8*            m_buf;

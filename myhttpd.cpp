@@ -4,6 +4,8 @@
  *  @date       December 2, 2012
  */
 
+//#define OLDWAY  1
+
 #include <wx/wx.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
@@ -108,18 +110,23 @@ myHTTPdThread::~myHTTPdThread()
  *  Break request buffer up into seperate lines stored in wxArrayString.
  */
 
-void myHTTPdThread::parse_buffer()
+void myHTTPdThread::parse_request()
 {
-    char*       pos;
+//    char*       pos;
     wxString    sLine, sQuery;
     int         nPos;
 
-    D(debug("myHTTPdThread::parse_buffer()\n"));
+    D(debug("myHTTPdThread::parse_request()\n"));
 
-    m_requestArray.Clear();
     m_method.Clear();
     m_url.Clear();
     m_reqver.Clear();
+
+#ifdef OLDWAY
+
+    m_requestArray.Clear();
+
+    char*       pos;
 
     pos = (char *)m_buf;
 
@@ -133,6 +140,7 @@ void myHTTPdThread::parse_buffer()
         }
         pos++;
     }
+#endif
 
     D(debug("-- found %ld lines\n", m_requestArray.Count()));
 
@@ -240,6 +248,48 @@ void myHTTPdThread::Clear()
  *
  */
 
+bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
+    bool bRes = false;
+    bool bDone = false;
+    wxString sLine;
+
+    D(debug("myHTTPdThread::receive_request(%p)\n", pSocket));
+
+    m_requestArray.Clear();
+
+    while (!bDone && pSocket->IsData()) {
+        char ch;
+
+        pSocket->Read(&ch, sizeof(ch));
+//        D(debug("%c", ch));
+        if (ch != '\n') {
+            sLine += ch;
+        } else {
+            sLine = sLine.Trim(true);
+            if (sLine.IsEmpty()) {
+                bDone = true;
+            } else {
+//                D(debug("adding line [%s]\n", sLine.c_str()));
+                m_requestArray.Add( sLine );
+                sLine.Clear();
+            }
+        }
+    }
+
+    if (pSocket->IsConnected()) {
+        parse_request();
+        bRes = true;
+    } else {
+        bRes = false;
+    }
+
+    return bRes;
+}
+
+/**
+ *
+ */
+
 void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 {
     bool            bDone = false;
@@ -276,9 +326,30 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
         //char c;
 
         if (pSocket->WaitForRead(0, 1000)) {
-            wxUint32 count;
 
             Clear();
+
+#ifndef OLDWAY
+
+            if (receive_request( pSocket )) {
+                D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
+                D(debug("method %s url %s version %s\n",
+                        m_method.c_str(),
+                        m_url.c_str(),
+                        m_reqver.c_str()));
+
+                if (m_method == wxT("GET")) {
+                    handle_get_method(pSocket);
+                } else {
+                    ReturnError(pSocket, 400, (char*)"Bad Request");
+                }
+                bDone = true;
+            } else {
+                bDone = true;
+            }
+
+#else
+            wxUint32 count;
 
             /* Get HTTP request */
             pSocket->Read(m_buf, m_bufSize);
@@ -291,7 +362,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 #endif
 
             if (count > 0) {
-                parse_buffer();
+                parse_request();
 
                 D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
                 D(debug("method %s url %s version %s\n",
@@ -308,9 +379,11 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                 ReturnError(pSocket, 400, (char*)"Bad Request");
             }
             bDone = true;
+#endif
+
         }
 
-        ::wxMicroSleep( 5000 );
+        ::wxMicroSleep( 100 );
     }
 
     pSocket->Close();
@@ -328,6 +401,8 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
 {
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
+
+    D(debug("handle_get_method()\n"));
 
     if (pPage != 0L) {
         pPage->Send(pSocket);
