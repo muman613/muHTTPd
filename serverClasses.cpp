@@ -194,6 +194,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_cbFunc            = copy.m_cbFunc;
     m_size              = copy.m_size;
     m_type              = copy.m_type;
+    m_flags             = copy.m_flags;
     m_cookies           = copy.m_cookies;
 
     if (copy.m_pBinaryData != 0) {
