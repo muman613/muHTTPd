@@ -3,7 +3,7 @@
 
 #include <wx/arrstr.h>
 #include <wx/hashmap.h>
-
+#include <wx/file.h>
 //#include "myhttpd.h"
 
 /* forward declarations */
@@ -12,6 +12,7 @@ class serverCatalog;
 class wxSocketBase;
 class HEADER_MAP;
 class Request;
+class wxFile;
 
 typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
 
@@ -40,6 +41,32 @@ namespace HTML {
     wxString SELECT(wxString sName, const wxArrayString& sOptions, wxString sDefault = wxEmptyString);
     wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
 };
+
+
+class myAttachment {
+public:
+    myAttachment(wxString sName, wxString sType);
+    myAttachment(const myAttachment& copy);
+    virtual ~myAttachment();
+
+    void            finalize();
+
+    void            add_byte(unsigned char ch);
+    void            add_buffer(unsigned char* pBuffer, size_t len);
+
+    wxUint32        size();
+    wxUint8*        data();
+    wxString        type();
+
+protected:
+    wxString        m_sName;
+    wxString        m_sContentType;
+    wxFile          m_tmpFile;
+    wxUint8*        m_pData;
+    wxUint32        m_dataLen;
+};
+
+WX_DECLARE_OBJARRAY( myAttachment*, ArrayOfAttachPtr );
 
 /**
  *

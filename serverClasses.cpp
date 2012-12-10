@@ -17,7 +17,33 @@
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY( ArrayOfCookies );
 WX_DEFINE_OBJARRAY( ArrayOfQueries );
+WX_DEFINE_OBJARRAY( ArrayOfAttachPtr );
 
+
+myAttachment::myAttachment(wxString sName, wxString sType)
+:   m_sName(sName),
+    m_sContentType(sType),
+    m_pData(0L),
+    m_dataLen(0L)
+{
+    wxString sTmpFile;
+    if (!(sTmpFile = wxFileName::CreateTempFileName(wxT("att"), &m_tmpFile)).IsEmpty()) {
+        D(debug("Created temporary file %s\n", sTmpFile.c_str()));
+    }
+}
+
+myAttachment::~myAttachment()
+{
+    if (m_tmpFile.IsOpened()) {
+        m_tmpFile.Close();
+    }
+}
+
+void myAttachment::add_buffer(unsigned char* pBuffer, size_t len) {
+    if (m_tmpFile.IsOpened()) {
+        m_tmpFile.Write(pBuffer, len);
+    }
+}
 /**
  *  Cookie class, used to store cookies.
  */

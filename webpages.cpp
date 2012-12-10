@@ -37,12 +37,20 @@ bool page3_stub(serverPage* pPage, Request* pRequest)
     pPage->AddToHead("<style> a { font-size: 18pt; }</style>");
 
     pPage->AddToBody(HTML::CENTER(HTML::HEADING1(wxT("Page 3"))));
+
+#if 1
+    pPage->AddToBody( wxT("<form action=\"submit.cgi\" enctype=\"multipart/form-data\" method=\"post\">\n") );
+    pPage->AddToBody( wxT("  First Name : <input type=\"text\" name=\"fname\">\n"));
+    pPage->AddToBody( wxT("  <br>What files are you sending? <INPUT type=\"file\" name=\"name_of_files\">"));
+    pPage->AddToBody( wxT("  <input type=\"submit\" value=\"Send\">\n"));
+    pPage->AddToBody( wxT("</form>\n") );
+#else
     pPage->AddToBody(wxT("<table><tr><td>Start Time :</td><td>14:56:09 2012-11-26</td></tr></table>"));
     pPage->AddToBody(wxT("<br>") + HTML::LINK(wxT("Display current results"), wxT("page2.html"))); // <a href=\"page2.html\">Display current results</a>"));
     pPage->AddToBody(wxT("<br><a href=\"page3.html\">Display previous results</a>"));
 
     pPage->AddToBody( generate_table() );
-
+#endif
     return true;
 }
 

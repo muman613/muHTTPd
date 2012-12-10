@@ -255,6 +255,8 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
 
     D(debug("myHTTPdThread::receive_request(%p)\n", pSocket));
 
+    pSocket->SaveState();
+    pSocket->SetFlags( wxSOCKET_NOWAIT );
     m_requestArray.Clear();
 
     while (!bDone && pSocket->IsData()) {
@@ -278,10 +280,164 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
 
     if (pSocket->IsConnected()) {
         parse_request();
+
+        if (m_method == wxT("POST")) {
+            char ch;
+            wxString    sCTHeader,
+                        sContentType,
+                        sBoundry,
+                        sBoundryEnd;
+            wxString sTmp;
+            wxString    sLine, sData, sBuffer;
+            bool        bFoundBoundry = false,
+                        bBoundEnd = false,
+                        bInData = false;
+            myAttachment* pAttach = 0L;
+
+            sCTHeader = m_Request.FindHeader( wxT("Content-Type") );
+            D(debug("sCTHeader %s\n", sCTHeader.c_str()));
+
+            if (!sCTHeader.IsEmpty()) {
+                wxStringTokenizer   ctToke( sCTHeader, wxT(";") );
+
+                sContentType    = ctToke.GetNextToken();
+                D(debug("-- found content type = %s\n", sContentType.c_str()));
+
+                if (sContentType == wxT("multipart/form-data")) {
+                    wxString sBoundString = ctToke.GetNextToken();
+                    D(debug("sBoundString = %s\n", sBoundString.c_str()));
+
+                    wxStringTokenizer bToke( sBoundString, wxT("=") );
+                    bToke.GetNextToken();
+                    sTmp            = bToke.GetNextToken();
+                    sBoundry        = wxT("--") + sTmp + wxT("\r\n");
+                    sBoundryEnd     = sBoundry + wxT("--") + wxT("\r\n");
+                }
+            }
+
+            D(debug("-- reading POST data...\n"));
+
+            bDone = false;
+            int trunc = 0;
+
+#if 1
+            while (!bDone) {
+                pSocket->Read(&ch, 1);
+                if (pSocket->LastCount() == 1) {
+                    sBuffer += ch;
+                } else {
+                    bDone = true;
+                }
+            }
+//            bDone = false;
+//            while (!bDone) {
+                size_t sPos = 0, bPos = 0, lPos = 0;
+//                wxString sData;
+
+                while ((sPos = sBuffer.find(sBoundry, sPos)) != wxString::npos) {
+                    if (sPos != 0) {
+                        sData = sBuffer.Mid( bPos + sBoundry.Length(), sPos - sBoundry.Length());
+                        D(debug("sPos = %ld\n", sPos));
+                        D(debug("data = %s\n", sData.c_str()));
+                        lPos = sPos;
+                    }
+                    sPos++;
+                }
+#if 1
+                while ((sPos = sBuffer.find(sBoundryEnd, lPos)) != wxString::npos) {
+                    if (sPos != 0) {
+                        sData = sBuffer.Mid( lPos + sBoundry.Length(), sPos - sBoundry.Length());
+                        D(debug("sPos = %ld\n", sPos));
+                        D(debug("data = %s\n", sData.c_str()));
+                    }
+                    sPos++;
+                }
+#endif
+//            }
+            wxFile fDump; //(wxT("/tmp/dump.bin"));
+
+            if (fDump.Open(wxT("/tmp/dump.bin"), wxFile::write)) {
+                fDump.Write( sBuffer.GetData(), sBuffer.Length() );
+                fDump.Close();
+            }
+#else
+            while (!bDone) {
+                pSocket->Read(&ch ,1);
+
+                if (pSocket->LastCount() == 1) {
+                    sLine += ch;
+
+                    //D(debug("sLine [%s]\n", sLine.c_str()));
+
+                    if (ch == '\n') {
+                        D(debug("sLine [%s] sBoundry [%s]\n", sLine.c_str(), sBoundry.c_str()));
+                        if (sLine == sBoundry) {
+                            D(debug("-- FOUND BOUNDRY ---\n"));
+                            bFoundBoundry = true;
+                            sLine.Clear();
+                            continue;
+                        } else if (sLine == sBoundryEnd) {
+                            D(debug("-- FOUND BOUNDRY END ---\n"));
+                            bBoundEnd = true;
+                            sLine.Clear();
+                            continue;
+                        }
+                        else if (!bInData && (sLine == wxT("\r\n"))) {
+                            D(debug("-- FOUND START DATA --\n"));
+                            bInData = true;
+                            bFoundBoundry = bBoundEnd = false;
+                            sBuffer.Clear();
+                            sLine.Clear();
+                            continue;
+                        }
+                    }
+
+                    if (bInData) {
+                        if (bFoundBoundry) {
+                            bInData = false;
+                            sLine.Clear();
+                            D(debug("Buffer size = %ld\n", sBuffer.Length()));
+                            D(debug("Buffer [%s]\n", sBuffer.c_str()));
+                            sBuffer.Clear();
+                            continue;
+                        } else if (bBoundEnd) {
+                            sLine.Clear();
+                            bInData = false;
+                            D(debug("Buffer size = %ld\n", sBuffer.Length()));
+                            D(debug("Buffer [%s]\n", sBuffer.c_str()));
+                            sBuffer.Clear();
+                            continue;
+                        } else {
+                            //D(debug("-- adding to buffer --\n"));
+                            sBuffer += ch;
+                            if (ch == '\n')
+                                sLine.Clear();
+                            continue;
+                        }
+                    } else {
+                        if (ch == '\n') {
+                            sLine.Trim(true);
+                            D(debug("Header : %s\n", sLine.c_str()));
+                        }
+                    }
+
+                    if (ch == '\n') {
+                        sLine.Clear();
+                    }
+                }
+
+            }
+#endif
+
+            D(debug("\nOK!\n"));
+        }
+
         bRes = true;
     } else {
         bRes = false;
     }
+
+    pSocket->RestoreState();
 
     return bRes;
 }
