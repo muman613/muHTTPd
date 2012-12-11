@@ -13,6 +13,7 @@ class wxSocketBase;
 class HEADER_MAP;
 class Request;
 class wxFile;
+class myHTTPd;
 
 typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
 
@@ -45,21 +46,27 @@ namespace HTML {
 
 class myAttachment {
 public:
-    myAttachment(wxString sName, wxString sType);
+    myAttachment(const wxString dataBuffer);
     myAttachment(const myAttachment& copy);
     virtual ~myAttachment();
 
-    void            finalize();
+//  void            finalize();
+//  void            add_byte(unsigned char ch);
+//  void            add_buffer(unsigned char* pBuffer, size_t len);
 
-    void            add_byte(unsigned char ch);
-    void            add_buffer(unsigned char* pBuffer, size_t len);
-
-    wxUint32        size();
-    wxUint8*        data();
-    wxString        type();
+    wxString        name() const     { return m_sName; }
+    wxString        fname() const    { return m_sFilename; }
+    wxUint32        size() const     { return m_dataLen; }
+    wxUint8*        data() const     { return m_pData; }
+    wxString        type() const     { return m_sContentType; }
+    wxString        string() const;
 
 protected:
+
+    bool            write_file();
+
     wxString        m_sName;
+    wxString        m_sFilename;
     wxString        m_sContentType;
     wxFile          m_tmpFile;
     wxUint8*        m_pData;
@@ -184,6 +191,9 @@ public:
     void            SetFlags(wxUint32 flags);
     void            ClearFlags(wxUint32 flags);
 
+    void            server(myHTTPd* pServer) { m_server = pServer; }
+    myHTTPd*        server() const { return m_server; }
+
 protected:
 
     typedef enum {
@@ -222,6 +232,8 @@ protected:
 
 //    HEADER_MAP*     m_pHeaders;
     ArrayOfCookies  m_cookies;
+
+    myHTTPd*        m_server;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );

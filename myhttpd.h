@@ -33,10 +33,12 @@ public:
     wxString            FindCookie(wxString sName);
     wxString            FindHeader(wxString sHeader);
     wxString            FindQuery(wxString sName);
+    const myAttachment* FindAttach(wxString sName);
 
     HEADER_MAP          m_headers;
     ArrayOfCookies      m_cookies;
     ArrayOfQueries      m_queries;
+    ArrayOfAttachPtr    m_attached;
 };
 
 /**
@@ -53,6 +55,7 @@ public:
 protected:
     void                handle_connection(wxSocketBase* pSock);
     void                handle_get_method(wxSocketBase* pSock);
+    void                handle_post_method(wxSocketBase* pSock);
 
     void                ReturnError(wxSocketBase* pSocket, int code, char* description);
 
@@ -61,6 +64,7 @@ protected:
 private:
     void                parse_request();
     bool                receive_request(wxSocketBase* pSocket);
+    bool                handle_attachment(wxString sData);
 
     static int          m_bufSize;
     wxUint8*            m_buf;

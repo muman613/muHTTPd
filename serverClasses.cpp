@@ -11,6 +11,7 @@
 #include <wx/filename.h>
 #include <wx/socket.h>
 #include <wx/mimetype.h>
+#include <wx/tokenzr.h>
 #include "serverClasses.h"
 #include "dbgutils.h"
 
@@ -20,30 +21,170 @@ WX_DEFINE_OBJARRAY( ArrayOfQueries );
 WX_DEFINE_OBJARRAY( ArrayOfAttachPtr );
 
 
-myAttachment::myAttachment(wxString sName, wxString sType)
-:   m_sName(sName),
-    m_sContentType(sType),
+static wxString gsDataPath = wxT("data-dir");
+
+/**
+ *
+ */
+
+myAttachment::myAttachment(wxString sData)
+:   m_sContentType(wxT("text/html")),
     m_pData(0L),
     m_dataLen(0L)
 {
     wxString sTmpFile;
+    wxString        sHeader;
+    wxArrayString   sHeadArray;
+    wxString        sContentType;
+    wxString        sTmp, sTmp2;
+
+    size_t lastOffset;
+
+#ifdef  ENABLE_FORM_DUMP
+    /* Dump the file to temporary file */
     if (!(sTmpFile = wxFileName::CreateTempFileName(wxT("att"), &m_tmpFile)).IsEmpty()) {
         D(debug("Created temporary file %s\n", sTmpFile.c_str()));
+
+        if (m_tmpFile.IsOpened()) {
+            m_tmpFile.Write( sData.GetData(), sData.Length() );
+            m_tmpFile.Close();
     }
 }
+#endif
+
+    wxStringTokenizer       partToke( sData, wxT("\n"));
+
+    while ((sHeader = partToke.GetNextToken()) != wxT("\r")) {
+        //D(debug("-- header %s\n", sHeader.c_str()));
+
+        sHeadArray.Add( sHeader );
+
+        wxStringTokenizer hdrToke( sHeader, wxT(":") );
+
+        sTmp = hdrToke.GetNextToken();
+        //D(debug("-- sTMP %s\n", sTmp.c_str()));
+
+        if (sTmp.CmpNoCase(wxT("content-disposition")) == 0) {
+            wxString sFields = hdrToke.GetNextToken();
+            //D(debug("-- found content disposition!\n"));
+
+            sFields.Trim(true);
+            sFields.Trim(false);
+
+            //D(debug("fields = [%s]\n", sFields.c_str()));
+
+            wxStringTokenizer attributes( sFields, wxT(";") );
+
+            sTmp2 = attributes.GetNextToken();
+            sTmp2.Trim(true);
+            sTmp2.Trim(false);
+
+//            D(debug("sTmp2 = [%s]\n", sTmp2.c_str()));
+
+            if (sTmp2.CmpNoCase(wxT("form-data")) == 0) {
+                while (attributes.HasMoreTokens()) {
+                    wxString sAttName, sAttValue;
+                    wxString subAttr = attributes.GetNextToken().Trim(false).Trim();
+
+                    //D(debug("---- sub attribute = %s\n", subAttr.c_str()));
+
+                    wxStringTokenizer subToke( subAttr, wxT("=") );
+
+                    sAttName = subToke.GetNextToken().Trim(false).Trim();
+                    sAttValue = subToke.GetNextToken().Trim(false).Trim();
+
+                    D(debug("Attribute name [%s] value [%s]\n", sAttName.c_str(), sAttValue.c_str()));
+
+                    if (sAttName.CmpNoCase(wxT("name")) == 0) {
+                        m_sName = sAttValue;
+                        m_sName.Replace(wxT("\""), wxEmptyString);
+                    } else if (sAttName.CmpNoCase(wxT("filename")) == 0) {
+                        m_sFilename = sAttValue;
+                        m_sFilename.Replace(wxT("\""), wxEmptyString);
+                    } else {
+                        /* */
+                    }
+                }
+            }
+        } else if (sTmp.CmpNoCase(wxT("content-type"))  == 0) {
+            m_sContentType = hdrToke.GetNextToken().Trim(false).Trim();
+            D(debug("-- Found content type of %s\n", m_sContentType.c_str()));
+        }
+
+    }
+    lastOffset = partToke.GetPosition();
+
+    //D(debug("-- last offset @ %ld\n", lastOffset));
+
+    sData = sData.Mid( lastOffset );
+
+    m_pData     = (unsigned char*)malloc( sData.Length() );
+    m_dataLen   = sData.Length();
+
+    memcpy( m_pData, sData.GetData(), sData.Length() );
+
+    write_file();
+
+    return;
+}
+
+/**
+ *
+ */
 
 myAttachment::~myAttachment()
 {
-    if (m_tmpFile.IsOpened()) {
-        m_tmpFile.Close();
+#ifdef  ENABLE_FORM_DUMP
+//    if (m_tmpFile.IsOpened()) {
+//        m_tmpFile.Close();
+//    }
+#endif
+
+    if (m_pData) {
+        free(m_pData);
+        m_pData = 0L;
+        m_dataLen = 0L;
     }
 }
 
-void myAttachment::add_buffer(unsigned char* pBuffer, size_t len) {
-    if (m_tmpFile.IsOpened()) {
-        m_tmpFile.Write(pBuffer, len);
-    }
+/**
+ *
+ */
+
+bool myAttachment::write_file() {
+    bool        bRes = false;
+    wxFile      outFile;
+
+    if (!m_sFilename.IsEmpty()) {
+        wxString    sFullPath = gsDataPath + wxT("/") + m_sFilename;
+
+        if (outFile.Open( sFullPath.c_str(), wxFile::write)) {
+            outFile.Write( m_pData, m_dataLen );
+            bRes = true;
+    	}
+	}
+
+    return bRes;
 }
+
+/**
+ *
+ */
+
+wxString myAttachment::string() const
+{
+    wxString sRes;
+
+    sRes = wxString::From8BitData( (const char*)m_pData, m_dataLen );
+
+    return sRes;
+}
+
+//void myAttachment::add_buffer(unsigned char* pBuffer, size_t len) {
+//    if (m_tmpFile.IsOpened()) {
+//        m_tmpFile.Write(pBuffer, len);
+//    }
+//}
 /**
  *  Cookie class, used to store cookies.
  */
@@ -136,7 +277,8 @@ serverPage::serverPage()
     m_nBinaryDataSize(0L),
     m_cbFunc(0L),
     m_type(serverPage::PAGE_HTML),
-    m_flags(0L)
+    m_flags(0L),
+    m_server(0L)
 {
     // ctor
 }
@@ -158,7 +300,8 @@ serverPage::serverPage(const serverPage& copy)
     m_size(copy.m_size),
     m_type(copy.m_type),
     m_flags(copy.m_flags),
-    m_cookies(copy.m_cookies)
+    m_cookies(copy.m_cookies),
+    m_server(copy.m_server)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -186,7 +329,8 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
     m_nBinaryDataSize(0L),
     m_cbFunc(pCBFunc),
     m_type(serverPage::PAGE_HTML),
-    m_flags(0L)
+    m_flags(0L),
+    m_server(0L)
 {
     // ctor
 }
@@ -222,6 +366,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_type              = copy.m_type;
     m_flags             = copy.m_flags;
     m_cookies           = copy.m_cookies;
+    m_server            = copy.m_server;
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
@@ -496,7 +641,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
-#if 1
+#if 0
     sHTTP += wxT("Connection: Close") + sHTMLEol;
 #else
     sHTTP += wxT("Connection: Keep-Alive") + sHTMLEol;

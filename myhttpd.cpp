@@ -15,6 +15,7 @@
 #include "dbgutils.h"
 
 //#define DUMP_RAW_REQUEST          1
+#define ENABLE_DUMP               1
 
 /**
  *  Find a cookie by name.
@@ -68,6 +69,18 @@ wxString Request::FindQuery(wxString sName) {
     return sResult;
 }
 
+const myAttachment* Request::FindAttach(wxString sName) {
+    D(debug("Request::FindAttach(%s)\n", sName.c_str()));
+
+    for (size_t x = 0 ; x < m_attached.Count() ; x++) {
+        if (m_attached[x]->name() == sName) {
+            D(debug("-- attachment found!\n"));
+            return m_attached[x];
+        }
+    }
+
+    return (myAttachment*)0L;
+}
 /**
  *  Return the referring URL.
  */
@@ -241,7 +254,34 @@ void myHTTPdThread::Clear()
     m_Request.m_headers.clear();
     m_Request.m_queries.Clear();
 
+    for (size_t x = 0 ;x < m_Request.m_attached.Count() ; x++) {
+        delete m_Request.m_attached[x];
+    }
+    m_Request.m_attached.Clear();
+
     return;
+}
+
+/**
+ *
+ */
+
+bool myHTTPdThread::handle_attachment( wxString sData )
+{
+    myAttachment*   pNewAttachment;
+
+    D(debug("handle_attachment()\n"));
+
+    pNewAttachment = new myAttachment( sData );
+    wxASSERT( pNewAttachment != 0L);
+
+    m_Request.m_attached.Add( pNewAttachment );
+
+    D(debug("--  attachment name [%s] of type [%s]\n",
+            pNewAttachment->name().c_str(),
+            pNewAttachment->type().c_str()));
+
+    return true;
 }
 
 /**
@@ -263,7 +303,8 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
         char ch;
 
         pSocket->Read(&ch, sizeof(ch));
-//        D(debug("%c", ch));
+
+        if (pSocket->LastCount() == 1) {
         if (ch != '\n') {
             sLine += ch;
         } else {
@@ -275,6 +316,11 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
                 m_requestArray.Add( sLine );
                 sLine.Clear();
             }
+            }
+        } else {
+            D(debug("-- NO DATA!\n"));
+            bDone = true;
+            goto exitReceive;
         }
     }
 
@@ -289,38 +335,34 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
                         sBoundryEnd;
             wxString sTmp;
             wxString    sLine, sData, sBuffer;
-            bool        bFoundBoundry = false,
-                        bBoundEnd = false,
-                        bInData = false;
-            myAttachment* pAttach = 0L;
+//            myAttachment* pAttach = 0L;
 
             sCTHeader = m_Request.FindHeader( wxT("Content-Type") );
-            D(debug("sCTHeader %s\n", sCTHeader.c_str()));
+            //D(debug("sCTHeader %s\n", sCTHeader.c_str()));
 
             if (!sCTHeader.IsEmpty()) {
                 wxStringTokenizer   ctToke( sCTHeader, wxT(";") );
 
                 sContentType    = ctToke.GetNextToken();
-                D(debug("-- found content type = %s\n", sContentType.c_str()));
+                //D(debug("-- found content type = %s\n", sContentType.c_str()));
 
                 if (sContentType == wxT("multipart/form-data")) {
                     wxString sBoundString = ctToke.GetNextToken();
-                    D(debug("sBoundString = %s\n", sBoundString.c_str()));
+                    //D(debug("sBoundString = %s\n", sBoundString.c_str()));
 
                     wxStringTokenizer bToke( sBoundString, wxT("=") );
                     bToke.GetNextToken();
                     sTmp            = bToke.GetNextToken();
                     sBoundry        = wxT("--") + sTmp + wxT("\r\n");
-                    sBoundryEnd     = sBoundry + wxT("--") + wxT("\r\n");
+                    sBoundryEnd     = wxT("--") + sTmp + wxT("--") + wxT("\r\n");
                 }
             }
 
             D(debug("-- reading POST data...\n"));
 
             bDone = false;
-            int trunc = 0;
+//            int trunc = 0;
 
-#if 1
             while (!bDone) {
                 pSocket->Read(&ch, 1);
                 if (pSocket->LastCount() == 1) {
@@ -329,103 +371,60 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
                     bDone = true;
                 }
             }
-//            bDone = false;
-//            while (!bDone) {
-                size_t sPos = 0, bPos = 0, lPos = 0;
-//                wxString sData;
 
-                while ((sPos = sBuffer.find(sBoundry, sPos)) != wxString::npos) {
-                    if (sPos != 0) {
-                        sData = sBuffer.Mid( bPos + sBoundry.Length(), sPos - sBoundry.Length());
-                        D(debug("sPos = %ld\n", sPos));
-                        D(debug("data = %s\n", sData.c_str()));
-                        lPos = sPos;
+            size_t          beginPos = -1, endPos = -1, curPos = 0;
+            wxString*       pSearchFor = &sBoundry;
+            bDone = false;
+
+            while (!bDone) {
+                //D(debug("curPos %d\n", curPos));
+
+                curPos = sBuffer.find( *pSearchFor, curPos );
+                //D(debug("result curPos %d\n", curPos));
+
+                if (curPos == wxString::npos) {
+                    //D(debug("-- hit end of string!\n"));
+
+                    if (pSearchFor == &sBoundry) {
+                        //D(debug("-- searching for end boundry!\n"));
+                        pSearchFor = &sBoundryEnd;
+                        curPos = 0;
+                        continue;
+                    } else {
+                        bDone = true;
+                        continue;
                     }
-                    sPos++;
                 }
-#if 1
-                while ((sPos = sBuffer.find(sBoundryEnd, lPos)) != wxString::npos) {
-                    if (sPos != 0) {
-                        sData = sBuffer.Mid( lPos + sBoundry.Length(), sPos - sBoundry.Length());
-                        D(debug("sPos = %ld\n", sPos));
-                        D(debug("data = %s\n", sData.c_str()));
-                    }
-                    sPos++;
+
+                if (beginPos == (size_t)-1) {
+//                    D(debug("-- must be a begin position @ %d\n", curPos));
+                    beginPos = curPos + pSearchFor->Length();
+                    curPos += pSearchFor->Length();
+                    continue;
                 }
-#endif
-//            }
+                if (endPos == (size_t)-1) {
+//                    D(debug("-- must be an end position @ %d\n", curPos));
+                    endPos = curPos;
+                    curPos++;
+                }
+                wxString sData = sBuffer.Mid( beginPos, endPos - beginPos -2 );
+
+                handle_attachment( sData );
+
+//                D(debug("begin %d end %d\n", beginPos, endPos));
+//                D(debug("data : [%s]\n", sData.c_str()));
+
+                beginPos = endPos + pSearchFor->Length();
+
+                endPos = -1;
+            }
+
+#ifdef  ENABLE_DUMP
             wxFile fDump; //(wxT("/tmp/dump.bin"));
 
             if (fDump.Open(wxT("/tmp/dump.bin"), wxFile::write)) {
                 fDump.Write( sBuffer.GetData(), sBuffer.Length() );
                 fDump.Close();
-            }
-#else
-            while (!bDone) {
-                pSocket->Read(&ch ,1);
-
-                if (pSocket->LastCount() == 1) {
-                    sLine += ch;
-
-                    //D(debug("sLine [%s]\n", sLine.c_str()));
-
-                    if (ch == '\n') {
-                        D(debug("sLine [%s] sBoundry [%s]\n", sLine.c_str(), sBoundry.c_str()));
-                        if (sLine == sBoundry) {
-                            D(debug("-- FOUND BOUNDRY ---\n"));
-                            bFoundBoundry = true;
-                            sLine.Clear();
-                            continue;
-                        } else if (sLine == sBoundryEnd) {
-                            D(debug("-- FOUND BOUNDRY END ---\n"));
-                            bBoundEnd = true;
-                            sLine.Clear();
-                            continue;
-                        }
-                        else if (!bInData && (sLine == wxT("\r\n"))) {
-                            D(debug("-- FOUND START DATA --\n"));
-                            bInData = true;
-                            bFoundBoundry = bBoundEnd = false;
-                            sBuffer.Clear();
-                            sLine.Clear();
-                            continue;
-                        }
-                    }
-
-                    if (bInData) {
-                        if (bFoundBoundry) {
-                            bInData = false;
-                            sLine.Clear();
-                            D(debug("Buffer size = %ld\n", sBuffer.Length()));
-                            D(debug("Buffer [%s]\n", sBuffer.c_str()));
-                            sBuffer.Clear();
-                            continue;
-                        } else if (bBoundEnd) {
-                            sLine.Clear();
-                            bInData = false;
-                            D(debug("Buffer size = %ld\n", sBuffer.Length()));
-                            D(debug("Buffer [%s]\n", sBuffer.c_str()));
-                            sBuffer.Clear();
-                            continue;
-                        } else {
-                            //D(debug("-- adding to buffer --\n"));
-                            sBuffer += ch;
-                            if (ch == '\n')
-                                sLine.Clear();
-                            continue;
-                        }
-                    } else {
-                        if (ch == '\n') {
-                            sLine.Trim(true);
-                            D(debug("Header : %s\n", sLine.c_str()));
-                        }
-                    }
-
-                    if (ch == '\n') {
-                        sLine.Clear();
-                    }
-                }
-
             }
 #endif
 
@@ -436,6 +435,8 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
     } else {
         bRes = false;
     }
+
+exitReceive:
 
     pSocket->RestoreState();
 
@@ -496,6 +497,8 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
                 if (m_method == wxT("GET")) {
                     handle_get_method(pSocket);
+                } else if (m_method == wxT("POST")) {
+                    handle_post_method(pSocket);
                 } else {
                     ReturnError(pSocket, 400, (char*)"Bad Request");
                 }
@@ -528,6 +531,8 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
                 if (m_method == wxT("GET")) {
                     handle_get_method(pSocket);
+                } else if (m_method == wxT("POST")) {
+                    handle_post_method(pSocket);
                 } else {
                     ReturnError(pSocket, 400, (char*)"Bad Request");
                 }
@@ -540,6 +545,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
         }
 
         ::wxMicroSleep( 100 );
+//        pSocket->Close();
     }
 
     pSocket->Close();
@@ -559,6 +565,25 @@ void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
     D(debug("handle_get_method()\n"));
+
+    if (pPage != 0L) {
+        pPage->Send(pSocket);
+    } else {
+        D(debug("-- requested invalid page %s\n", m_url.c_str()));
+        ReturnError(pSocket, 404, (char *)"Not Found");
+    }
+
+    return;
+}
+/**
+ *  Handle the HTTP 'POST' request.
+ */
+
+void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
+{
+    serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
+
+    D(debug("handle_post_method()\n"));
 
     if (pPage != 0L) {
         pPage->Send(pSocket);
@@ -728,6 +753,7 @@ bool myHTTPd::Stop()
 
 void myHTTPd::AddPage(serverPage& page)
 {
+    page.server(this);              // set the server pointer...
     m_catalog.AddPage( page );
 }
 
