@@ -140,7 +140,9 @@ void add_serverpages(myHTTPd* pServer)
 
     page->SaveToFile("/tmp/index.html");
 
+#ifdef  _DEBUG
     page->Dump( stdout );
+#endif
 
     pServer->AddPage( *page );
 
@@ -154,7 +156,9 @@ void add_serverpages(myHTTPd* pServer)
     *page += wxT("<p>This page was generated!");
     page->SetRedirectTo( wxT("index.html"), 10);
 
+#ifdef  _DEBUG
     page->Dump( stdout );
+#endif
 
     pServer->AddPage( *page );
 
