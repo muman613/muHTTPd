@@ -8,7 +8,8 @@ wxString generate_table() {
     myTable     table(2, 2);
     wxString    sHTML;
 
-    D(debug("test_table()\n"));
+    D(debug("generate_table()\n"));
+
     table.set_border(2);
     table.set_row_class(1, wxT("even"));
 
@@ -40,8 +41,10 @@ bool page3_stub(serverPage* pPage, Request* pRequest)
 
 #if 1
     pPage->AddToBody( wxT("<form action=\"submit.cgi\" enctype=\"multipart/form-data\" method=\"post\">\n") );
-    pPage->AddToBody( wxT("  First Name : <input type=\"text\" name=\"fname\">\n"));
-    pPage->AddToBody( wxT("  <br>What files are you sending? <INPUT type=\"file\" name=\"name_of_files\">"));
+    pPage->AddToBody( wxT("<table>\n") );
+    pPage->AddToBody( wxT("  <tr><td align=\"right\">First Name :</td><td><input type=\"text\" name=\"fname\"></td></tr>\n"));
+    pPage->AddToBody( wxT("  <tr><td align=\"right\">Image :</td><td><INPUT type=\"file\" name=\"name_of_files\"></td></tr>\n"));
+    pPage->AddToBody( wxT("</table>\n") );
     pPage->AddToBody( wxT("  <input type=\"submit\" value=\"Send\">\n"));
     pPage->AddToBody( wxT("</form>\n") );
 #else
@@ -73,6 +76,44 @@ bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
     return true;
 }
 
+/**
+ *
+ */
+
+bool submit_stub(serverPage* pPage, Request* pRequest) {
+    D(debug("submit_stub()\n"));
+    wxString                sName = wxT("Unsupplied"),
+                            sFilename = wxT("Unsupplied"),
+                            sUploadType;
+
+    const myAttachment* pThisAttach = 0L;
+
+    if ((pThisAttach = pRequest->FindAttach( wxT("fname") )) != 0) {
+        sName = pThisAttach->string();
+    }
+
+    if ((pThisAttach = pRequest->FindAttach( wxT("name_of_files") )) != 0) {
+        sFilename = pThisAttach->fname();
+        sUploadType = pThisAttach->type();
+    }
+
+    pPage->Clear();
+
+    pPage->AddToBody(HTML::HEADING1(wxT("Submit Results")));
+    pPage->AddToBody(wxT("<p>Supplied user name is ") + sName + wxT("</br>"));
+    pPage->AddToBody(wxT("<p>Uploaded file name ") + sFilename + wxT(" of type ") + sUploadType + wxT("</br>"));
+
+    if (sUploadType == wxT("image/jpeg")) {
+        serverPage*     pNewPage = new serverPage(wxT("/") + sFilename);
+
+        pNewPage->SetImageData( pThisAttach->data(), pThisAttach->size() );
+        pNewPage->SetMimeType( pThisAttach->type() );
+        pPage->server()->AddPage( *pNewPage );
+        delete pNewPage;
+    }
+    return true;
+}
+
 #ifndef LOAD_FROM_FILE
     #include "image/html_02_00_jpg.h"
     #include "image/html_debuggerfe_ico.h"
@@ -81,6 +122,8 @@ bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
 void add_serverpages(myHTTPd* pServer)
 {
     serverPage*     page;
+
+    D(debug("add_serverpages()\n"));
 
     page = new serverPage(wxT("/index.html") /*, index_stub */);
 
@@ -128,6 +171,8 @@ void add_serverpages(myHTTPd* pServer)
                     html_002_00_jpg, html_002_00_jpg_len );
     add_image_page( pServer, wxT("/favicon.ico"), wxT("image/ico"),
                     html_debuggerfe_ico, html_debuggerfe_ico_len );
+
+    ADD_PAGE( pServer, wxT("/submit.cgi"), submit_stub)
 
     return;
 }
