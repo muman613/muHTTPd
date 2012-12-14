@@ -328,14 +328,13 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
         parse_request();
 
         if (m_method == wxT("POST")) {
-            char ch;
+//            char ch;
             wxString    sCTHeader,
                         sContentType,
                         sBoundry,
                         sBoundryEnd;
             wxString sTmp;
             wxString    sLine, sData, sBuffer;
-//            myAttachment* pAttach = 0L;
 
             sCTHeader = m_Request.FindHeader( wxT("Content-Type") );
             //D(debug("sCTHeader %s\n", sCTHeader.c_str()));
@@ -360,17 +359,23 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
 
             D(debug("-- reading POST data...\n"));
 
-            bDone = false;
-//            int trunc = 0;
+            char tBuffer[1024];
+            wxUint32 tBread = 0;
 
-            while (!bDone) {
-                pSocket->Read(&ch, 1);
-                if (pSocket->LastCount() == 1) {
-                    sBuffer += ch;
-                } else {
-                    bDone = true;
-                }
+            while (pSocket->WaitForRead(4)) {
+                wxUint32 nBread = 0;
+
+                memset(tBuffer, 0, 1024);
+                pSocket->Read(tBuffer, 1024);
+                nBread = pSocket->LastCount();
+
+                //D(debug("-- got %ld bytes!\n", nBread));
+                sBuffer += wxString::From8BitData(tBuffer, nBread);
+                tBread += nBread;
             }
+
+            D(debug("--- tBread %d\n", tBread));
+            D(debug("--- SBUFFER SIZE %d\n", sBuffer.Length()));
 
             size_t          beginPos = -1, endPos = -1, curPos = 0;
             wxString*       pSearchFor = &sBoundry;
@@ -408,6 +413,8 @@ bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
                     curPos++;
                 }
                 wxString sData = sBuffer.Mid( beginPos, endPos - beginPos -2 );
+
+                D(debug("Attachment size %d\n", sData.Length()));
 
                 handle_attachment( sData );
 
@@ -486,8 +493,6 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
             Clear();
 
-#ifndef OLDWAY
-
             if (receive_request( pSocket )) {
                 D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
                 D(debug("method %s url %s version %s\n",
@@ -506,49 +511,12 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
             } else {
                 bDone = true;
             }
-
-#else
-            wxUint32 count;
-
-            /* Get HTTP request */
-            pSocket->Read(m_buf, m_bufSize);
-            count = pSocket->LastCount();
-
-            D(debug("-- received %d bytes from peer!\n", count));
-
-#ifdef  DUMP_RAW_REQUEST
-            D(debug("%s\n", m_buf));
-#endif
-
-            if (count > 0) {
-                parse_request();
-
-                D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
-                D(debug("method %s url %s version %s\n",
-                        m_method.c_str(),
-                        m_url.c_str(),
-                        m_reqver.c_str()));
-
-                if (m_method == wxT("GET")) {
-                    handle_get_method(pSocket);
-                } else if (m_method == wxT("POST")) {
-                    handle_post_method(pSocket);
-                } else {
-                    ReturnError(pSocket, 400, (char*)"Bad Request");
-                }
-            } else {
-                ReturnError(pSocket, 400, (char*)"Bad Request");
-            }
-            bDone = true;
-#endif
-
         }
 
         ::wxMicroSleep( 100 );
-//        pSocket->Close();
     }
 
-    pSocket->Close();
+//    pSocket->Close();
 
     delete peerInfo;
     delete localInfo;
@@ -650,6 +618,7 @@ wxThread::ExitCode myHTTPdThread::Entry()
 
             handle_connection(pSocket);
 
+            pSocket->Close();
             delete pSocket;
         }
 

@@ -1,10 +1,16 @@
+/**
+ *  @file       serverClasses.h
+ *  @author     Michael A. Uman
+ *  @date       December 5, 2012
+ *  @brief      Classes used by myHTTPd to represent pages, cookies, & queries.
+ */
+
 #ifndef __SERVERCLASSES_H__
 #define __SERVERCLASSES_H__
 
 #include <wx/arrstr.h>
 #include <wx/hashmap.h>
 #include <wx/file.h>
-//#include "myhttpd.h"
 
 /* forward declarations */
 class serverPage;
@@ -43,16 +49,15 @@ namespace HTML {
     wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
 };
 
+/**
+ *  Class which encapsulates a multi-part mime attachment.
+ */
 
 class myAttachment {
 public:
     myAttachment(const wxString dataBuffer);
     myAttachment(const myAttachment& copy);
     virtual ~myAttachment();
-
-//  void            finalize();
-//  void            add_byte(unsigned char ch);
-//  void            add_buffer(unsigned char* pBuffer, size_t len);
 
     wxString        name() const     { return m_sName; }
     wxString        fname() const    { return m_sFilename; }
@@ -133,7 +138,7 @@ WX_DECLARE_OBJARRAY( myQuery, ArrayOfQueries );
 
 class serverPage {
 public:
-    enum {
+    enum _serverFlags {
         FLAG_PRINT = (1L << 0),
     };
 
@@ -196,7 +201,7 @@ public:
 
 protected:
 
-    typedef enum {
+    typedef enum _pageType {
         PAGE_HTML,
         PAGE_BINARY,
     } PAGE_TYPE;

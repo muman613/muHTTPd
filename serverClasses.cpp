@@ -641,7 +641,9 @@ bool serverPage::Send(wxSocketBase* pSocket)
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
-#if 0
+    sHTTP += wxDateTime::Now().Format(wxT("%z"));
+
+#if 1
     sHTTP += wxT("Connection: Close") + sHTMLEol;
 #else
     sHTTP += wxT("Connection: Keep-Alive") + sHTMLEol;
