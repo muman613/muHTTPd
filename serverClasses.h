@@ -49,6 +49,56 @@ namespace HTML {
     wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
 };
 
+class myStyleAttribute {
+public:
+    myStyleAttribute();
+    myStyleAttribute(const wxString& sStyleAttribute, const wxString& sStyleValue);
+    myStyleAttribute(const myStyleAttribute& copy);
+    virtual ~myStyleAttribute();
+
+    myStyleAttribute& operator =(const myStyleAttribute& copy);
+
+    wxString AttributeName() const;
+    wxString AttributeValue() const;
+
+protected:
+    wxString        m_sAttributeName;
+    wxString        m_sAttributeValue;
+};
+
+WX_DECLARE_OBJARRAY( myStyleAttribute, ArrayOfAttributes );
+
+class myStyle {
+public:
+    myStyle();
+    myStyle(const wxString& sStyleTag, const wxString& sStyleClass = wxEmptyString);
+    myStyle(const myStyle& copy);
+    virtual ~myStyle();
+
+    myStyle& operator =(const myStyle& copy);
+
+    myStyle& AddAttribute(const wxString& sAttributeName, const wxString& sAttributeValue);
+
+    myStyle& operator += (myStyleAttribute& newAttribute);
+    myStyle& operator + (myStyleAttribute& newAttribute);
+
+
+
+
+    wxString                GetCSS();
+
+protected:
+    size_t  GetCount() const;
+    const myStyleAttribute& operator [](size_t index);
+
+    wxString                m_sCSSTag;
+    wxString                m_sCSSClass;
+
+    ArrayOfAttributes       m_attrArray;
+};
+
+WX_DECLARE_OBJARRAY( myStyle, ArrayOfStyles );
+
 /**
  *  Class which encapsulates a multi-part mime attachment.
  */
@@ -81,7 +131,7 @@ protected:
 WX_DECLARE_OBJARRAY( myAttachment*, ArrayOfAttachPtr );
 
 /**
- *
+ *  Cookie class represents a HTTP cookie object.
  */
 
 class myCookie {
