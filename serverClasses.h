@@ -218,6 +218,8 @@ public:
     void            AddToScript(wxString sLine);
     void            AddToBody(wxString sLine);
 
+    void            BodyFromString(const char* sBodyData);
+
     void*           GetPageData();
     void            SetPageData(void* pData);
 
@@ -260,6 +262,7 @@ public:
     wxString        GetFavIconName() const;
 
 protected:
+    friend class myHTTPdThread;
 
     typedef enum _pageType {
         PAGE_HTML,
@@ -326,5 +329,7 @@ public:
 protected:
     PAGE_HASH       m_pages;
 };
+
+extern wxString sHTMLEol;
 
 #endif // __SERVERCLASSES_H__

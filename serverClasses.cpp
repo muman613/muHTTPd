@@ -357,7 +357,7 @@ bool myCookie::secure() {
 
 //#define ENABLE_DEBUG_SEND            1    // Enable header debugging
 
-static wxString sHTMLEol = wxT("\r\n");
+wxString sHTMLEol = wxT("\r\n");
 static wxString sServerID = wxT("myHTTPd-1.0.0");
 
 /**
@@ -740,7 +740,9 @@ bool serverPage::Send(wxSocketBase* pSocket)
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
-    sHTTP += wxDateTime::Now().Format(wxT("%z"));
+    sHTTP += wxT("Expires: ") +
+             wxDateTime::Now().Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC ) +
+             sHTMLEol;
 
 #if 1
     sHTTP += wxT("Connection: Close") + sHTMLEol;
@@ -980,6 +982,28 @@ void serverPage::SetFavIconName(wxString sIconName) {
 
 wxString serverPage::GetFavIconName() const {
     return m_sFavIconName;
+}
+
+
+void serverPage::BodyFromString(const char* szBodyData)
+{
+    wxString sBodyData = szBodyData;
+    wxStringTokenizer bodyToken( sBodyData, wxT("\n") );
+    wxString sTmp;
+
+    D(debug("serverPage::BodyFromString()\n"));
+
+    sTmp = bodyToken.GetNextToken();
+    if (!sTmp.IsEmpty()) {
+        m_sBodyText.Clear();
+
+        while (!sTmp.IsEmpty()) {
+            m_sBodyText.Add( sTmp );
+            sTmp = bodyToken.GetNextToken();
+        }
+    }
+
+    return;
 }
 
 #ifdef  _DEBUG
