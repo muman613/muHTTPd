@@ -1,3 +1,9 @@
+/**
+ *  @file       webpages.cpp
+ *  @author     Michael A. Uman
+ *  @date       December 26, 2012
+ */
+
 #include <wx/wx.h>
 #include "serverClasses.h"
 #include "myhttpd.h"
@@ -97,20 +103,78 @@ bool submit_stub(serverPage* pPage, Request* pRequest) {
     pPage->AddToBody(wxT("<p>Uploaded file name ") + sFilename + wxT(" of type ") + sUploadType + wxT("</br>"));
 
     if (sUploadType == wxT("image/jpeg")) {
-        serverPage*     pNewPage = new serverPage(wxT("/") + sFilename);
+        serverPage*     pNewPage = new serverPage(wxT("/images/") + sFilename);
 
         pNewPage->SetImageData( pThisAttach->data(), pThisAttach->size() );
         pNewPage->SetMimeType( pThisAttach->type() );
         pPage->server()->AddPage( *pNewPage );
         delete pNewPage;
     }
+
     return true;
+}
+
+/**
+ *  HTTP Error 404 Page HTML
+ */
+
+const char* sz404Text = \
+"<CENTER><DIV ALIGN=\"center\">\n"
+"<PRE><CODE>\n"
+" \n"
+" \n"
+" \n"
+" \n"
+"<TABLE BORDER=0 BGCOLOR=\"#C0C0C0\"><TR><TD><CODE><FONT COLOR=\"#330033\">ERR 404</FONT></CODE></TD></TR></TABLE>"
+" \n"
+" \n"
+"FFFFFF0 FFFFFFF FF00000 FF00000 0FFFFF0 FF000FF FF000FF\n"
+"FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
+"FFFFFF0 000F000 FF00000 FF00000 0FFF000 FF000FF 00FFF00\n"
+"FFFFFF0 000F000 FF00000 FF00000 000FFF0 FF000FF 00FFF00\n"
+"FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
+"FFFFFF0 FFFFFFF FFFFFFF FFFFFFF 0FFFFF0 0FFFFF0 FF000FF\n"
+" \n"
+" \n"
+"You have attempted to access a non-existent page.\n"
+"The current HTTP session will be terminated.\n"
+" \n"
+" \n"
+"Press any key to continue<BLINK>_</BLINK>\n"
+"</CODE></PRE>\n"
+"</DIV></CENTER>\n";
+
+
+void add_404_page( myHTTPd* pServer) {
+    serverPage* pNewPage;
+    D(debug("add_404_page()\n"));
+
+    pNewPage = new serverPage(wxT("/404.html"));
+
+    pNewPage->AddToHead("<style>\nbody { background: #0000cc; color: #ffffff; }\n</style>\n");
+    pNewPage->SetTitle(wxT("404 File Not Found - Blue Screen of Shame"));
+    pNewPage->BodyFromString( sz404Text );
+
+    pServer->Set404Page( *pNewPage );
+
+    delete pNewPage;
 }
 
 #ifndef LOAD_FROM_FILE
     #include "image/html_02_00_jpg.h"
     #include "image/html_debuggerfe_ico.h"
 #endif
+
+void add_all_images(myHTTPd* pServer) {
+    /* Add all images here */
+    add_image_page( pServer, wxT("/images/image.jpg"), wxT("image/jpeg"),
+                    html_002_00_jpg, html_002_00_jpg_len );
+    add_image_page( pServer, wxT("/images/favicon.ico"), wxT("image/ico"),
+                    html_debuggerfe_ico, html_debuggerfe_ico_len );
+    add_image_page( pServer, wxT("/favicon.ico"), wxT("image/ico"),
+                    html_debuggerfe_ico, html_debuggerfe_ico_len );
+    return;
+}
 
 void add_serverpages(myHTTPd* pServer)
 {
@@ -120,16 +184,20 @@ void add_serverpages(myHTTPd* pServer)
 
     page = new serverPage(wxT("/index.html") /*, index_stub */);
 
+    page->SetFavIconName( wxT("images/favicon.ico") );
     page->SetTitle( wxT("Index Page") );
 
     *page += HTML::CENTER(HTML::HEADING1(wxT("Main Menu")));
     *page += wxT("<p>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("<br>");
     *page += HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("<br>");
-    *page += HTML::IMAGE( wxT("image.jpg"), wxT("My Face"), 128, 128 );
+    *page += HTML::IMAGE( wxT("images/image.jpg"), wxT("My Face"), 128, 128 );
 
-    page->AddCookie( wxT("ID"), wxT("muman613"), wxT("Tue 04-Dec-2012 12:00:00 GMT") );
-    page->AddCookie( wxT("FLAGS"), wxT("AEfnoYz"), wxT("Tue 04-Dec-2012 12:00:00 GMT") );
+    /* Set cookies to expire in 5 minutes */
+    wxTimeSpan expireSpan = wxTimeSpan::Minutes( 5 );
+
+    page->AddCookie( wxT("ID"), wxT("muman613"), expireSpan );
+    page->AddCookie( wxT("FLAGS"), wxT("AEfnoYz"), expireSpan );
 
     page->SaveToFile("/tmp/index.html");
 
@@ -157,20 +225,13 @@ void add_serverpages(myHTTPd* pServer)
 
     delete page;
 
-    page = new serverPage(wxT("/page3.html"), page3_stub);
-
-    pServer->AddPage( *page );
-
-    delete page;
-
-    /* Add all images here */
-    add_image_page( pServer, wxT("/image.jpg"), wxT("image/jpeg"),
-                    html_002_00_jpg, html_002_00_jpg_len );
-    add_image_page( pServer, wxT("/favicon.ico"), wxT("image/ico"),
-                    html_debuggerfe_ico, html_debuggerfe_ico_len );
-
+    ADD_PAGE( pServer, wxT("/page3.html"), page3_stub);
     ADD_PAGE( pServer, wxT("/submit.cgi"), submit_stub)
+
+
+    add_all_images( pServer );
+
+    add_404_page( pServer );
 
     return;
 }
-
