@@ -38,6 +38,8 @@ int main() {
 
     myHTTPd         webServer(8080);
 
+    webServer.SetLogFile("/tmp/myHTTPd.log");
+
     add_serverpages( &webServer );
 
     if (webServer.Start()) {
