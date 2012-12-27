@@ -85,6 +85,7 @@ private:
     Request             m_Request;
 };
 
+
 /**
  *  The control class for the HTTP daemon.
  */
@@ -100,10 +101,19 @@ class myHTTPd {
         void            AddPage(serverPage& page);
         serverPage*     GetPage(wxString sPageName, Request* pRequest);
 
-        void            SetLogFile(wxString sLogFilename);
+        enum logType {
+            LOG_MSG,
+            LOG_WARN,
+            LOG_ERROR,
+        };
+
+        bool            SetLogFile(wxString sLogFilename, bool bAppend = false);
+        bool            LogMessage(logType nType, wxString sMsg);
 
     protected:
         int             m_nPort;
+
+        void            CloseLogFile();
 
         myHTTPdThread*  m_serverThread;
         serverCatalog   m_catalog;

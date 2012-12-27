@@ -500,6 +500,14 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                         m_url.c_str(),
                         m_reqver.c_str()));
 
+                m_pParent->LogMessage( myHTTPd::LOG_MSG,
+                                       wxString::Format(wxT("%s %s %s from %s.%s"),
+                                                        m_method.c_str(),
+                                                        m_url.c_str(),
+                                                        m_reqver.c_str(),
+                                                        m_sPeerHost.c_str(),
+                                                        m_sPeerPort.c_str()) );
+
                 if (m_method == wxT("GET")) {
                     handle_get_method(pSocket);
                 } else if (m_method == wxT("POST")) {
@@ -539,6 +547,10 @@ void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
     } else {
         D(debug("-- requested invalid page %s\n", m_url.c_str()));
         ReturnError(pSocket, 404, (char *)"Not Found");
+
+        m_pParent->LogMessage( myHTTPd::LOG_WARN,
+                               wxString::Format(wxT("Request For Invalid Page %s"),
+                                                m_url.c_str()) );
     }
 
     return;
@@ -558,6 +570,10 @@ void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
     } else {
         D(debug("-- requested invalid page %s\n", m_url.c_str()));
         ReturnError(pSocket, 404, (char *)"Not Found");
+
+        m_pParent->LogMessage( myHTTPd::LOG_WARN,
+                               wxString::Format(wxT("Request For Invalid Page %s"),
+                                                m_url.c_str()) );
     }
 
     return;
@@ -657,12 +673,96 @@ myHTTPd::myHTTPd(int portNum)
 myHTTPd::~myHTTPd()
 {
     //dtor
+    CloseLogFile();
 }
 
-void myHTTPd::SetLogFile(wxString sLogFilename)
-{
-    m_sLogFilename = sLogFilename;
+/**
+ *  Close the log file.
+ */
+
+void myHTTPd::CloseLogFile() {
+    D(debug("myHTTPd::CloseLogFile()\n"));
+
+    if (m_pLogFile) {
+        if (m_pLogFile->IsOpened()) {
+            m_pLogFile->Close();
+            delete m_pLogFile;
+            m_pLogFile = 0L;
+        }
+    }
+
     return;
+}
+
+/**
+ *  Open the log file.
+ *
+ *  @param sLogFilename     Name of file to open as log file.
+ *  @param bAppend          true if log messages should append to existing log.
+ */
+
+bool myHTTPd::SetLogFile(wxString sLogFilename, bool bAppend)
+{
+    bool                bRes    = false;
+    wxFile::OpenMode    logMode = (bAppend == true)?wxFile::write_append:
+                                                    wxFile::write;
+
+    D(debug("myHTTPd::SetLogFile(%s)\n", sLogFilename.c_str()));
+
+    CloseLogFile(); // Close any existing log file.
+
+    m_pLogFile = new wxFile( sLogFilename, logMode );
+
+    if (m_pLogFile->IsOpened()) {
+        D(debug("-- logfile opened and ready to write!\n"));
+
+        m_sLogFilename = sLogFilename;
+        bRes = true;
+    } else {
+        D(debug("-- unable to open log file!\n"));
+
+        delete m_pLogFile;
+        m_pLogFile = 0L;
+    }
+
+    return bRes;
+}
+
+/**
+ *  Send a message to the log file.
+ */
+
+bool myHTTPd::LogMessage(logType nType, wxString sMsg)
+{
+    bool bRes = false;
+    if (m_pLogFile != 0L) {
+        wxDateTime      now = wxDateTime::Now();
+        wxString        sFullMsg;
+
+        switch (nType) {
+        case LOG_MSG:
+            sFullMsg = wxString::Format( wxT("MESSAGE %s : %s\n"),
+                                        now.Format().c_str(),
+                                        sMsg.c_str() );
+            break;
+        case LOG_WARN:
+            sFullMsg = wxString::Format( wxT("WARNING %s : %s\n"),
+                                        now.Format().c_str(),
+                                        sMsg.c_str() );
+            break;
+        case LOG_ERROR:
+            sFullMsg = wxString::Format( wxT("ERROR   %s : %s\n"),
+                                        now.Format().c_str(),
+                                        sMsg.c_str() );
+            break;
+        }
+
+        m_pLogFile->Write(sFullMsg);
+        m_pLogFile->Flush();
+
+        bRes = true;
+    }
+    return bRes;
 }
 
 /**
@@ -683,6 +783,7 @@ bool myHTTPd::Start()
             m_pLogFile = new wxFile( m_sLogFilename, wxFile::write );
 
             if (pNewThread->Run() == wxTHREAD_NO_ERROR) {
+                LogMessage(LOG_MSG, wxT("Server Started"));
                 m_serverThread = pNewThread;
                 bRes = true;
             }
@@ -707,10 +808,7 @@ bool myHTTPd::Stop()
         delete m_serverThread;
         m_serverThread = 0L;
 
-        /* close log file */
-        m_pLogFile->Close();
-        delete m_pLogFile;
-        m_pLogFile = 0L;
+        LogMessage(LOG_MSG, "Server Stopped");
     }
 
     return false;
