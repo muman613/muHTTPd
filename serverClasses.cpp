@@ -385,6 +385,7 @@ serverPage::serverPage()
 serverPage::serverPage(const serverPage& copy)
 :   m_sPageName(copy.m_sPageName),
     m_sMimeType(copy.m_sMimeType),
+    m_sPageTitle(copy.m_sPageTitle),
     m_sRedirect(copy.m_sRedirect),
     m_nRedirectTime(copy.m_nRedirectTime),
     m_sJScriptText(copy.m_sJScriptText),
@@ -396,7 +397,8 @@ serverPage::serverPage(const serverPage& copy)
     m_type(copy.m_type),
     m_flags(copy.m_flags),
     m_cookies(copy.m_cookies),
-    m_server(copy.m_server)
+    m_server(copy.m_server),
+    m_sFavIconName(copy.m_sFavIconName)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -450,6 +452,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
 
     m_sPageName         = copy.m_sPageName;
     m_sMimeType         = copy.m_sMimeType;
+    m_sPageTitle        = copy.m_sPageTitle;
     m_sRedirect         = copy.m_sRedirect;
     m_nRedirectTime     = copy.m_nRedirectTime;
     m_sHeadText         = copy.m_sHeadText;
@@ -462,6 +465,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_flags             = copy.m_flags;
     m_cookies           = copy.m_cookies;
     m_server            = copy.m_server;
+    m_sFavIconName      = copy.m_sFavIconName;
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
@@ -794,6 +798,14 @@ wxString serverPage::HTML() {
     for (size_t x = 0 ; x < m_sHeadText.Count() ; x++) {
         sHTMLText += wxT("\t") + m_sHeadText[x] + sHTMLEol;
     }
+
+    /* Add the favorite icon link if it exists. */
+    if (!m_sFavIconName.IsEmpty()) {
+        sTmp = wxString::Format(wxT("\t<link rel=\"icon\" href=\"%s\" type=\"image/x-icon\">"),
+                                m_sFavIconName.c_str()) + sHTMLEol;
+        sHTMLText += sTmp;
+    }
+
     /* If redirect is set, perform redirection */
     if (!m_sRedirect.IsEmpty()) {
         sTmp = wxT("\t<meta http-equiv=\"refresh\" content=\"") +
@@ -908,9 +920,8 @@ bool serverPage::SetImageData(void* pData, size_t length) {
  *  Add a cookie to the page.
  */
 
-bool serverPage::AddCookie(wxString sName, wxString sValue,
-                           wxString sExpireDate, wxString sPath,
-                           wxString sDomain, bool bSecure)
+bool serverPage::AddCookie(wxString sName, wxString sValue, wxString sExpireDate,
+                           wxString sPath, wxString sDomain, bool bSecure)
 {
     myCookie    newCookie(sName, sValue, sExpireDate, sPath, sDomain, bSecure);
 
@@ -920,6 +931,30 @@ bool serverPage::AddCookie(wxString sName, wxString sValue,
 
     return true;
 }
+
+/**
+ *  Add a cookie to the page.
+ */
+
+bool serverPage::AddCookie(wxString sName, wxString sValue, wxTimeSpan& tSpan,
+                           wxString sPath, wxString sDomain, bool bSecure)
+{
+    wxString    sExpireDate;
+    wxDateTime  expire,
+                now = wxDateTime::Now();
+
+    D(debug("serverPage::AddCookie(bytimespan)\n"));
+
+    expire = now + tSpan;
+    sExpireDate = expire.Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
+
+    D(debug("-- expire date is %s\n", sExpireDate.c_str()));
+
+    AddCookie(sName, sValue, sExpireDate, sPath, sDomain, bSecure);
+
+    return true;
+}
+
 
 /**
  *
@@ -935,6 +970,16 @@ void serverPage::SetFlags(wxUint32 flags) {
 
 void serverPage::ClearFlags(wxUint32 flags) {
     m_flags &= ~flags;
+}
+
+
+void serverPage::SetFavIconName(wxString sIconName) {
+    m_sFavIconName = sIconName;
+    return;
+}
+
+wxString serverPage::GetFavIconName() const {
+    return m_sFavIconName;
 }
 
 #ifdef  _DEBUG

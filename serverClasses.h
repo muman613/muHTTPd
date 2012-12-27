@@ -243,11 +243,21 @@ public:
                               wxString sDomain      = wxEmptyString,
                               bool bSecure          = false);
 
+    bool            AddCookie(wxString sName, wxString sValue,
+                              wxTimeSpan& tSpan,
+                              wxString    sPath     = wxEmptyString,
+                              wxString    sDomain   = wxEmptyString,
+                              bool        bSecure   = false);
+
     void            SetFlags(wxUint32 flags);
     void            ClearFlags(wxUint32 flags);
 
     void            server(myHTTPd* pServer) { m_server = pServer; }
     myHTTPd*        server() const { return m_server; }
+
+    /* Functions to get/set the favorite icon name */
+    void            SetFavIconName(wxString sIconName);
+    wxString        GetFavIconName() const;
 
 protected:
 
@@ -289,6 +299,8 @@ protected:
     ArrayOfCookies  m_cookies;
 
     myHTTPd*        m_server;
+
+    wxString        m_sFavIconName;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );
