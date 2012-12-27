@@ -100,6 +100,8 @@ class myHTTPd {
 
         void            AddPage(serverPage& page);
         serverPage*     GetPage(wxString sPageName, Request* pRequest);
+        void            Set404Page(serverPage& page);
+        serverPage*     Get404Page();
 
         enum logType {
             LOG_MSG,
@@ -111,6 +113,7 @@ class myHTTPd {
         bool            LogMessage(logType nType, wxString sMsg);
 
     protected:
+
         int             m_nPort;
 
         void            CloseLogFile();
@@ -119,6 +122,7 @@ class myHTTPd {
         serverCatalog   m_catalog;
         wxString        m_sLogFilename;
         wxFile*         m_pLogFile;
+        serverPage*     m_p404Page;
 
     private:
 };

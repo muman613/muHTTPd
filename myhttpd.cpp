@@ -585,14 +585,31 @@ void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
 
 void myHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* description)
 {
-	char response[500];
+    wxString sResponseHeader, sResponseHTML;
+    serverPage* p404Page = 0L;
+
     D(debug("myHTTPdThread::ReturnError(%p, %d, %s)\n", pSocket, code, description));
 
-	sprintf( response, "HTTP/1.1 %d %s\r\nserver: myHTTPd-1.0.0\r\n"
-                       "content-type: text/plain\r\n"
-                       "content-length: %ld\r\n\r\n%s",
-                       code, description, strlen(description), description );
-	pSocket->Write(response, strlen(response));
+    if ((code == 404) && ((p404Page = m_pParent->Get404Page()) != 0L)) {
+        sResponseHTML = p404Page->HTML();
+
+        sResponseHeader += wxString::Format(wxT("HTTP/1.1 %d %s"), code, description) + sHTMLEol;
+        sResponseHeader += wxT("content-type: text/html") + sHTMLEol;
+        sResponseHeader += wxString::Format(wxT("content-length: %ld"), sResponseHTML.Length()) + sHTMLEol;
+        sResponseHeader += sHTMLEol;
+
+        pSocket->Write(sResponseHeader, sResponseHeader.Length());
+        pSocket->Write(sResponseHTML, sResponseHTML.Length());
+    } else {
+        char response[500];
+
+        sprintf( response, "HTTP/1.1 %d %s\r\nserver: myHTTPd-1.0.0\r\n"
+                           "content-type: text/plain\r\n"
+                           "content-length: %ld\r\n\r\n%s",
+                           code, description, strlen(description), description );
+        pSocket->Write(response, strlen(response));
+        D(debug("404 response string = %s\n", response));
+    }
 
 	return;
 }
@@ -661,7 +678,8 @@ myHTTPd::myHTTPd(int portNum)
 :   m_nPort(portNum),
     m_serverThread(0L),
     m_sLogFilename(wxT("/tmp/myHTTPd.log")),
-    m_pLogFile(0L)
+    m_pLogFile(0L),
+    m_p404Page(0L)
 {
     //ctor
 }
@@ -832,4 +850,21 @@ serverPage* myHTTPd::GetPage(wxString sPageName, Request* pRequest)
 {
     D(debug("myHTTPd::GetPage(%s)\n", sPageName.c_str()));
     return m_catalog.GetPage( sPageName, pRequest );
+}
+
+void myHTTPd::Set404Page(serverPage& page) {
+    D(debug("myHTTPd::Set404Page(...)\n"));
+
+    if (m_p404Page != 0L) {
+        delete m_p404Page;
+        m_p404Page = 0L;
+    }
+
+    m_p404Page = new serverPage(page);
+
+    return;
+}
+
+serverPage* myHTTPd::Get404Page() {
+    return m_p404Page;
 }
