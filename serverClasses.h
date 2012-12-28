@@ -192,8 +192,16 @@ public:
         FLAG_PRINT = (1L << 0),
     };
 
+    typedef enum _pageType {
+        PAGE_HTML,
+        PAGE_CSS,
+        PAGE_JSCRIPT,
+        PAGE_BINARY,
+    } PAGE_TYPE;
+
     serverPage();
-    serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc = 0);
+    serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc = 0L);
+    serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc = 0L);
     serverPage(const serverPage& copy);
 
     virtual ~serverPage();
@@ -209,7 +217,10 @@ public:
     void            Clear();
 
     void            SetTitle(wxString sTitle);
+    wxString        GetTitle();
+
     void            SetMimeType(wxString sMimeType);
+    wxString        GetMimeType();
 
     void            SetRedirectTo(wxString sRedirect, int nSec = 2);
     void            SetRefreshTime(int nSec = 2);
@@ -263,14 +274,9 @@ public:
 
 protected:
     friend class myHTTPdThread;
-
-    typedef enum _pageType {
-        PAGE_HTML,
-        PAGE_BINARY,
-    } PAGE_TYPE;
-
     friend class serverCatalog;
 
+    wxString        CSS();                          ///< Generate CSS script
     wxString        HTML();                         ///< Generate HTML from
                                                     ///<   head & body sections.
     void            Update(Request* pRequest = 0);  ///< Call callback function
@@ -319,6 +325,7 @@ public:
 
     void            AddPage(serverPage& newPage);
     serverPage*     GetPage(wxString sPageName, Request* pRequest);
+    bool            PageExists(wxString sPageName);
 
     bool            GetPageArray(wxArrayString& sNameArray);
 

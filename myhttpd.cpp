@@ -513,7 +513,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                 } else if (m_method == wxT("POST")) {
                     handle_post_method(pSocket);
                 } else {
-                    ReturnError(pSocket, 400, (char*)"Bad Request");
+                    ReturnError(pSocket, 501, (char*)"Not Implemented");
                 }
                 bDone = true;
             } else {
@@ -685,13 +685,39 @@ myHTTPd::myHTTPd(int portNum)
 }
 
 /**
- *
+ *  myHTTPd destructor.
  */
 
 myHTTPd::~myHTTPd()
 {
-    //dtor
+    /* If a 404 page was allocated, delete it... */
+    if (m_p404Page != 0L) {
+        delete m_p404Page;
+        m_p404Page = 0L;
+    }
+
     CloseLogFile();
+}
+
+
+/**
+ *  Set the port # for the HTTP server to use.
+ *
+ *  If the server is already running this function returns false.
+ */
+
+bool myHTTPd::SetPort(int portNum)
+{
+    bool bRes = false;
+
+    D(debug("myHTTPd::SetPort(%d)\n", portNum));
+
+    if (m_serverThread != 0L) {
+        m_nPort = portNum;
+        bRes = true;
+    }
+
+    return bRes;
 }
 
 /**
@@ -784,7 +810,7 @@ bool myHTTPd::LogMessage(logType nType, wxString sMsg)
 }
 
 /**
- *
+ *  Start the HTTP server running.
  */
 
 bool myHTTPd::Start()
@@ -812,14 +838,14 @@ bool myHTTPd::Start()
 }
 
 /**
- *
+ *  Stop the server thread.
  */
 
 bool myHTTPd::Stop()
 {
     D(debug("myHTTPD::Stop()\n"));
 
-    if (m_serverThread) {
+    if (m_serverThread != 0L) {
         m_serverThread->Delete();
         m_serverThread->Wait();
 
@@ -833,13 +859,24 @@ bool myHTTPd::Stop()
 }
 
 /**
+ *  Add a HTML page to the page catalog.
  *
+ *  Page name must be unique, otherwise this function returns false.
  */
 
-void myHTTPd::AddPage(serverPage& page)
+bool myHTTPd::AddPage(serverPage& page)
 {
-    page.server(this);              // set the server pointer...
-    m_catalog.AddPage( page );
+    bool bRes = false;
+
+    D(debug("myHTTPd::AddPage(name=%s)\n", page.GetPageName().c_str()));
+
+    if ( !PageExists( page.GetPageName() ) ) {
+        page.server(this);              // set the server pointer...
+        m_catalog.AddPage( page );
+        bRes = true;
+    }
+
+    return bRes;
 }
 
 /**
@@ -851,6 +888,19 @@ serverPage* myHTTPd::GetPage(wxString sPageName, Request* pRequest)
     D(debug("myHTTPd::GetPage(%s)\n", sPageName.c_str()));
     return m_catalog.GetPage( sPageName, pRequest );
 }
+
+/**
+ *  Determine if a page with name 'sPageName' is in the catalog.
+ */
+
+bool myHTTPd::PageExists(wxString sPageName) {
+    D(debug("myHTTPd::PageExists(%s)\n", sPageName.c_str()));
+    return m_catalog.PageExists( sPageName );
+}
+
+/**
+ *  Set the 404 page to the contents of 'page'.
+ */
 
 void myHTTPd::Set404Page(serverPage& page) {
     D(debug("myHTTPd::Set404Page(...)\n"));
@@ -864,6 +914,10 @@ void myHTTPd::Set404Page(serverPage& page) {
 
     return;
 }
+
+/**
+ *  Return pointer to users 404 page.
+ */
 
 serverPage* myHTTPd::Get404Page() {
     return m_p404Page;

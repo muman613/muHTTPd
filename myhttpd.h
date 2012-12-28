@@ -19,6 +19,7 @@
 class myHTTPd;
 class myHTTPdThread;
 
+#define DEFAULT_PORT            (8080)
 
 WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
 
@@ -92,14 +93,18 @@ private:
 
 class myHTTPd {
     public:
-        myHTTPd(int portNum = 8080);
+        myHTTPd(int portNum = DEFAULT_PORT);
         virtual ~myHTTPd();
+
+        bool            SetPort(int portNum = DEFAULT_PORT);
 
         bool            Start();
         bool            Stop();
 
-        void            AddPage(serverPage& page);
+        bool            AddPage(serverPage& page);
         serverPage*     GetPage(wxString sPageName, Request* pRequest);
+        bool            PageExists(wxString sPageName);
+
         void            Set404Page(serverPage& page);
         serverPage*     Get404Page();
 
@@ -111,18 +116,17 @@ class myHTTPd {
 
         bool            SetLogFile(wxString sLogFilename, bool bAppend = false);
         bool            LogMessage(logType nType, wxString sMsg);
+        void            CloseLogFile();
 
     protected:
 
         int             m_nPort;
 
-        void            CloseLogFile();
-
         myHTTPdThread*  m_serverThread;
         serverCatalog   m_catalog;
-        wxString        m_sLogFilename;
-        wxFile*         m_pLogFile;
-        serverPage*     m_p404Page;
+        wxString        m_sLogFilename;     ///< Log filename.
+        wxFile*         m_pLogFile;         ///< File used for logging.
+        serverPage*     m_p404Page;         ///< User specified 404 page.
 
     private:
 };

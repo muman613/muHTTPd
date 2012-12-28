@@ -13,6 +13,7 @@
 #include <wx/mimetype.h>
 #include <wx/tokenzr.h>
 #include "serverClasses.h"
+#include "myutils.h"
 #include "dbgutils.h"
 
 #include <wx/arrimpl.cpp>
@@ -436,6 +437,48 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
  *
  */
 
+serverPage::serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc)
+:   m_sPageName(sPageName),
+    m_sMimeType(wxEmptyString),
+    m_nRedirectTime(0),
+    m_pPageData(0L),
+    m_pBinaryData(0L),
+    m_nBinaryDataSize(0L),
+    m_cbFunc(pCBFunc),
+    m_type(type),
+    m_flags(0L),
+    m_server(0L)
+{
+    // ctor
+    switch (type) {
+    case PAGE_HTML:
+        m_sMimeType = wxT("text/html");
+        break;
+    case PAGE_CSS:
+        m_sMimeType = wxT("text/css");
+        break;
+    case PAGE_JSCRIPT:
+        m_sMimeType = wxT("text/javascript");
+        break;
+    case PAGE_BINARY:
+        {
+            wxFileName  sFileName(sPageName);
+            wxString    sType = sFileName.GetExt();
+
+            D(debug("-- looking for mime type for extension [%s]\n", sType.c_str()));
+
+            m_sMimeType = GetMimeFromExtenstion( sType );
+
+            D(debug("-- mime type is [%s]\n", m_sMimeType.c_str()));
+        }
+        break;
+    }
+}
+
+/**
+ *
+ */
+
 serverPage::~serverPage()
 {
     // dtor
@@ -624,10 +667,28 @@ void serverPage::SetTitle(wxString sTitle)
  *
  */
 
+wxString serverPage::GetTitle() {
+    D(debug("serverPage::GetTitle()\n"));
+    return m_sPageTitle;
+}
+
+/**
+ *
+ */
+
 void serverPage::SetMimeType(wxString sMimeType)
 {
     D(debug("serverPage::SetMimeType(%s)\n", sMimeType.c_str()));
     m_sMimeType = sMimeType;
+}
+
+/**
+ *
+ */
+
+wxString serverPage::GetMimeType() {
+    D(debug("serverPage::GetMimeType()\n"));
+    return m_sMimeType;
 }
 
 /**
@@ -1069,7 +1130,7 @@ void serverCatalog::AddPage(serverPage& newPage)
  *
  */
 
-serverPage*     serverCatalog::GetPage(wxString sPageName, Request* pRequest)
+serverPage* serverCatalog::GetPage(wxString sPageName, Request* pRequest)
 {
     if (m_pages.find(sPageName) != m_pages.end()) {
         serverPage* pPage = &m_pages[sPageName];
@@ -1078,6 +1139,20 @@ serverPage*     serverCatalog::GetPage(wxString sPageName, Request* pRequest)
     }
 
     return (serverPage*)0L;
+}
+
+bool serverCatalog::PageExists(wxString sPageName)
+{
+    bool bRes = false;
+
+    D(debug("serverCatalog::PageExists(%s)\n", sPageName.c_str()));
+
+    if (m_pages.find(sPageName) != m_pages.end()) {
+        D(debug("-- found page!\n"));
+        bRes = true;
+    }
+
+    return bRes;
 }
 
 /**
