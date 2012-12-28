@@ -45,20 +45,25 @@ public:
 
     myStyleElement& AddAttribute(const wxString& sAttributeName, const wxString& sAttributeValue);
 
-    myStyleElement& operator += (myStyleAttribute& newAttribute);
-    myStyleElement& operator + (myStyleAttribute& newAttribute);
+    myStyleElement& operator += (myStyleAttribute newAttribute);
+    myStyleElement& operator + (myStyleAttribute newAttribute);
 
-    wxString                GetCSS();
+    bool                    GetCSS(wxString cssElement);
+    bool                    GetCSS(wxArrayString& cssElement);
+
+    wxString                GetComment();
+    void                    SetComment(wxString comment);
 
 protected:
     size_t                  GetCount() const;
     const myStyleAttribute& operator [](size_t index);
 
-    wxString                m_sCSSTag;
-    wxString                m_sCSSClass;
-    wxString                m_sCSSId;
+    wxString                m_sCSSTag;          ///< Tag of element e.g. 'div'
+    wxString                m_sCSSClass;        ///< Class of element e.g class="super"
+    wxString                m_sCSSId;           ///< Id of element e.g. id="content"
+    wxString                m_sCSSComment;      ///< Optional comment for element
 
-    ArrayOfAttributes       m_attrArray;
+    ArrayOfAttributes       m_attrArray;        ///< Array of attributes
 };
 
 WX_DECLARE_OBJARRAY( myStyleElement, ArrayOfStyles );

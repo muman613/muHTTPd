@@ -20,104 +20,11 @@
 WX_DEFINE_OBJARRAY( ArrayOfCookies );
 WX_DEFINE_OBJARRAY( ArrayOfQueries );
 WX_DEFINE_OBJARRAY( ArrayOfAttachPtr );
-WX_DEFINE_OBJARRAY( ArrayOfAttributes );
-WX_DEFINE_OBJARRAY( ArrayOfStyles );
+
 
 
 static wxString gsDataPath = wxT("data-dir");
 
-myStyleAttribute::myStyleAttribute()
-{
-
-}
-
-myStyleAttribute::myStyleAttribute(const wxString& sAttributeName, const wxString& sAttributeValue)
-:   m_sAttributeName(sAttributeName),
-    m_sAttributeValue(sAttributeValue)
-{
-
-}
-
-myStyleAttribute::myStyleAttribute(const myStyleAttribute& copy)
-:   m_sAttributeName(copy.m_sAttributeName),
-    m_sAttributeValue(copy.m_sAttributeValue)
-{
-
-}
-
-myStyleAttribute::~myStyleAttribute()
-{
-
-}
-
-myStyleAttribute& myStyleAttribute::operator =(const myStyleAttribute& copy)
-{
-    m_sAttributeName = copy.m_sAttributeName;
-    m_sAttributeValue = copy.m_sAttributeValue;
-
-    return *this;
-}
-
-wxString myStyleAttribute::AttributeName() const {
-    return m_sAttributeName;
-}
-
-wxString myStyleAttribute::AttributeValue() const {
-    return m_sAttributeValue;
-}
-
-
-myStyle::myStyle()
-{
-
-}
-
-myStyle::myStyle(const wxString& sStyleTag, const wxString& sStyleClass)
-:   m_sCSSTag(sStyleTag),
-    m_sCSSClass(sStyleClass)
-{
-
-}
-
-myStyle::myStyle(const myStyle& copy)
-:   m_sCSSTag(copy.m_sCSSTag),
-    m_sCSSClass(copy.m_sCSSClass),
-    m_attrArray(copy.m_attrArray)
-{
-
-}
-
-myStyle::~myStyle()
-{
-
-}
-
-myStyle& myStyle::operator =(const myStyle& copy)
-{
-    m_sCSSTag = copy.m_sCSSTag;
-    m_sCSSClass = copy.m_sCSSClass;
-    m_attrArray = copy.m_attrArray;
-
-    return *this;
-}
-
-myStyle& myStyle::AddAttribute(const wxString& sAttName, const wxString& sAttVal)
-{
-    m_attrArray.Add( myStyleAttribute( sAttName, sAttVal ) );
-    return *this;
-}
-
-myStyle& myStyle::operator +(myStyleAttribute& newAtt)
-{
-    m_attrArray.Add( newAtt );
-    return *this;
-}
-
-myStyle& myStyle::operator +=(myStyleAttribute& newAtt)
-{
-    m_attrArray.Add( newAtt );
-    return *this;
-}
 
 /**
  *
@@ -1243,7 +1150,10 @@ namespace HTML {
         return sHTML;
     }
     wxString BR() {
-        return wxT("<br>");
+        return wxT("<br />");
+    }
+    wxString HR() {
+        return wxT("<hr />");
     }
     wxString P(wxString sText) {
         return wxT("<p />") + sText;

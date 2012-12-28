@@ -42,62 +42,14 @@ namespace HTML {
     wxString HEADING2(wxString sText);
     wxString HEADING3(wxString sText);
     wxString CENTER(wxString sText);
+    wxString BR();
+    wxString HR();
     wxString LINK(wxString sText, wxString sURL);
     wxString IMAGE(wxString sSrc, wxString sAlt = wxEmptyString,
                    int width = 0, int height = 0);
     wxString SELECT(wxString sName, const wxArrayString& sOptions, wxString sDefault = wxEmptyString);
     wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
 };
-
-class myStyleAttribute {
-public:
-    myStyleAttribute();
-    myStyleAttribute(const wxString& sStyleAttribute, const wxString& sStyleValue);
-    myStyleAttribute(const myStyleAttribute& copy);
-    virtual ~myStyleAttribute();
-
-    myStyleAttribute& operator =(const myStyleAttribute& copy);
-
-    wxString AttributeName() const;
-    wxString AttributeValue() const;
-
-protected:
-    wxString        m_sAttributeName;
-    wxString        m_sAttributeValue;
-};
-
-WX_DECLARE_OBJARRAY( myStyleAttribute, ArrayOfAttributes );
-
-class myStyle {
-public:
-    myStyle();
-    myStyle(const wxString& sStyleTag, const wxString& sStyleClass = wxEmptyString);
-    myStyle(const myStyle& copy);
-    virtual ~myStyle();
-
-    myStyle& operator =(const myStyle& copy);
-
-    myStyle& AddAttribute(const wxString& sAttributeName, const wxString& sAttributeValue);
-
-    myStyle& operator += (myStyleAttribute& newAttribute);
-    myStyle& operator + (myStyleAttribute& newAttribute);
-
-
-
-
-    wxString                GetCSS();
-
-protected:
-    size_t  GetCount() const;
-    const myStyleAttribute& operator [](size_t index);
-
-    wxString                m_sCSSTag;
-    wxString                m_sCSSClass;
-
-    ArrayOfAttributes       m_attrArray;
-};
-
-WX_DECLARE_OBJARRAY( myStyle, ArrayOfStyles );
 
 /**
  *  Class which encapsulates a multi-part mime attachment.

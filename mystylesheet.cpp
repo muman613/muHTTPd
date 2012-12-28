@@ -57,6 +57,8 @@ wxString myStyleAttribute::operator *() const {
     return sAttributeText;
 }
 
+/*----------------------------------------------------------------------------*/
+
 //myStyleElement::myStyleElement()
 //{
 //
@@ -75,21 +77,25 @@ myStyleElement::myStyleElement(const wxString sStyleTag,
 myStyleElement::myStyleElement(const myStyleElement& copy)
 :   m_sCSSTag(copy.m_sCSSTag),
     m_sCSSClass(copy.m_sCSSClass),
+    m_sCSSId(copy.m_sCSSId),
+    m_sCSSComment(copy.m_sCSSComment),
     m_attrArray(copy.m_attrArray)
 {
-
+    // ctor
 }
 
 myStyleElement::~myStyleElement()
 {
-
+    // dtor
 }
 
 myStyleElement& myStyleElement::operator =(const myStyleElement& copy)
 {
-    m_sCSSTag = copy.m_sCSSTag;
-    m_sCSSClass = copy.m_sCSSClass;
-    m_attrArray = copy.m_attrArray;
+    m_sCSSTag       = copy.m_sCSSTag;
+    m_sCSSClass     = copy.m_sCSSClass;
+    m_sCSSId        = copy.m_sCSSId;
+    m_sCSSComment   = copy.m_sCSSComment;
+    m_attrArray     = copy.m_attrArray;
 
     return *this;
 }
@@ -100,14 +106,58 @@ myStyleElement& myStyleElement::AddAttribute(const wxString& sAttName, const wxS
     return *this;
 }
 
-myStyleElement& myStyleElement::operator +(myStyleAttribute& newAtt)
+myStyleElement& myStyleElement::operator +(myStyleAttribute newAtt)
 {
     m_attrArray.Add( newAtt );
     return *this;
 }
 
-myStyleElement& myStyleElement::operator +=(myStyleAttribute& newAtt)
+myStyleElement& myStyleElement::operator +=(myStyleAttribute newAtt)
 {
     m_attrArray.Add( newAtt );
     return *this;
 }
+
+bool myStyleElement::GetCSS(wxArrayString& cssElement) {
+    wxString sText;
+
+    cssElement.Clear();
+
+    if (!m_sCSSComment.IsEmpty()) {
+        sText = wxT("/** ") + m_sCSSComment + wxT(" **/");
+        cssElement.Add(sText);
+    }
+
+    sText = m_sCSSTag;
+
+    if (!m_sCSSClass.IsEmpty()) {
+        sText += wxT(".") + m_sCSSClass;
+    }
+
+    if (!m_sCSSId.IsEmpty()) {
+        sText += wxT("#") + m_sCSSId;
+    }
+
+    sText += wxT(" {");
+
+    cssElement.Add( sText );
+
+    for (size_t index = 0 ; index < m_attrArray.Count() ; index++) {
+        wxString sAttrPair = wxT("\t") + *(m_attrArray[index]);
+
+        cssElement.Add( sAttrPair );
+    }
+
+    cssElement.Add(wxT("}"));
+
+    return true;
+}
+
+wxString myStyleElement::GetComment() {
+    return m_sCSSComment;
+}
+
+void myStyleElement::SetComment(wxString comment) {
+    m_sCSSComment = comment;
+}
+
