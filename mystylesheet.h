@@ -41,15 +41,20 @@ public:
     myStyleElement(const myStyleElement& copy);
     virtual ~myStyleElement();
 
+    void                    Clear();
+
     myStyleElement& operator =(const myStyleElement& copy);
+
+    bool operator ==(const myStyleElement& compare);
 
     myStyleElement& AddAttribute(const wxString& sAttributeName, const wxString& sAttributeValue);
 
     myStyleElement& operator += (myStyleAttribute newAttribute);
     myStyleElement& operator + (myStyleAttribute newAttribute);
 
-    bool                    GetCSS(wxString cssElement);
-    bool                    GetCSS(wxArrayString& cssElement);
+    bool                    GetCSS(wxArrayString& cssElement, bool bAppend = true);
+
+    /* Set/Get the element comment */
 
     wxString                GetComment();
     void                    SetComment(wxString comment);
@@ -66,7 +71,28 @@ protected:
     ArrayOfAttributes       m_attrArray;        ///< Array of attributes
 };
 
-WX_DECLARE_OBJARRAY( myStyleElement, ArrayOfStyles );
+WX_DECLARE_OBJARRAY( myStyleElement, ArrayOfElementStyles );
 
+/**
+ *  Style Sheet class.
+ */
+
+class myStyleSheet {
+public:
+    myStyleSheet();
+    virtual ~myStyleSheet();
+
+    bool                        AddStyle( myStyleElement& elem );
+
+    myStyleSheet&               operator +=( myStyleElement& elem );
+    myStyleSheet&               operator +( myStyleElement& elem );
+
+    bool                        GetCSS(wxArrayString& cssSheet);
+
+    bool                        DumpToFile(FILE* oFP = stdout);
+
+protected:
+    ArrayOfElementStyles        m_styleArray;
+};
 
 #endif // __MYSTYLESHEET_H__
