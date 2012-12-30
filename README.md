@@ -15,7 +15,7 @@ TODO
 * Complete CSS styles for pages.
 * Complete HTML table implementation.
 * Add Javascript support.
-
+* Move myHTTPd code into static library.
 
 ### ENVIRONMENT
 
