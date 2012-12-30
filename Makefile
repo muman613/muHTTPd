@@ -3,7 +3,9 @@
 #
 
 TARGET=myHTTPd
-SRC=main.cpp  myhttpd.cpp  serverClasses.cpp  lastusedlist.cpp
+SRC=main.cpp  myhttpd.cpp  serverClasses.cpp  dbgutils.cpp mystylesheet.cpp \
+    mytable.cpp webpages.cpp myutils.cpp
+
 OBJ=$(SRC:%.cpp=%.o)
 WX_CONFIG=wx-config
 
