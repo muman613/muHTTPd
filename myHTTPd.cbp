@@ -14,11 +14,11 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`$(HOME)/bin/wx-config --cflags --debug=yes`" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --cflags --debug=yes`" />
 					<Add option="-D_DEBUG=1" />
 				</Compiler>
 				<Linker>
-					<Add option="`$(HOME)/bin/wx-config --libs --debug=yes`" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=yes`" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -29,11 +29,11 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="`$(HOME)/bin/wx-config --cflags --debug=no`" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --cflags --debug=no`" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`$(HOME)/bin/wx-config --libs --debug=no`" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=no`" />
 				</Linker>
 			</Target>
 		</Build>
@@ -47,8 +47,12 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="myhttpd.cpp" />
 		<Unit filename="myhttpd.h" />
+		<Unit filename="mystylesheet.cpp" />
+		<Unit filename="mystylesheet.h" />
 		<Unit filename="mytable.cpp" />
 		<Unit filename="mytable.h" />
+		<Unit filename="myutils.cpp" />
+		<Unit filename="myutils.h" />
 		<Unit filename="serverClasses.cpp" />
 		<Unit filename="serverClasses.h" />
 		<Unit filename="webpages.cpp" />
