@@ -126,7 +126,7 @@ myAttachment::myAttachment(wxString sData)
 
     memcpy( m_pData, sData.GetData(), sData.Length() );
 
-    write_file();
+//  write_file();
 
     return;
 }
