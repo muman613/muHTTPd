@@ -8,6 +8,7 @@
 #include "serverClasses.h"
 #include "myhttpd.h"
 #include "mytable.h"
+#include "myutils.h"
 #include "dbgutils.h"
 
 wxString generate_table() {
@@ -47,8 +48,8 @@ bool page3_stub(serverPage* pPage, Request* pRequest)
 
     pPage->AddToBody( wxT("<form action=\"submit.cgi\" enctype=\"multipart/form-data\" method=\"post\">\n") );
     pPage->AddToBody( wxT("<table>\n") );
-    pPage->AddToBody( wxT("  <tr><td align=\"right\">First Name :</td><td><input type=\"text\" name=\"fname\"></td></tr>\n"));
-    pPage->AddToBody( wxT("  <tr><td align=\"right\">Image :</td><td><INPUT type=\"file\" name=\"name_of_files\" accept=\"application/*\"></td></tr>\n"));
+    pPage->AddToBody( wxT("  <tr><td align=\"right\">Image Name :</td><td><input type=\"text\" name=\"fname\"></td></tr>\n"));
+    pPage->AddToBody( wxT("  <tr><td align=\"right\">Image :</td><td><INPUT type=\"file\" name=\"name_of_files\" accept=\"image/*\"></td></tr>\n"));
     pPage->AddToBody( wxT("</table>\n") );
     pPage->AddToBody( wxT("  <input type=\"submit\" value=\"Send\">\n"));
     pPage->AddToBody( wxT("</form>\n") );
@@ -81,8 +82,8 @@ bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
 
 bool submit_stub(serverPage* pPage, Request* pRequest) {
     D(debug("submit_stub()\n"));
-    wxString                sName = wxT("Unsupplied"),
-                            sFilename = wxT("Unsupplied"),
+    wxString                sName,
+                            sFilename,
                             sUploadType;
 
     const myAttachment* pThisAttach = 0L;
@@ -99,17 +100,33 @@ bool submit_stub(serverPage* pPage, Request* pRequest) {
     pPage->Clear();
 
     pPage->AddToBody(HTML::HEADING1(wxT("Submit Results")));
-    pPage->AddToBody(wxT("<p>Supplied user name is ") + sName + wxT("</br>"));
-    pPage->AddToBody(wxT("<p>Uploaded file name ") + sFilename + wxT(" of type ") + sUploadType + wxT("</br>"));
 
-    if (sUploadType == wxT("image/jpeg")) {
-        serverPage*     pNewPage = new serverPage(wxT("/images/") + sFilename);
-
-        pNewPage->SetImageData( pThisAttach->data(), pThisAttach->size() );
-        pNewPage->SetMimeType( pThisAttach->type() );
-        pPage->server()->AddPage( *pNewPage );
-        delete pNewPage;
+    if (!sName.IsEmpty()) {
+        pPage->AddToBody(wxT("<p>User name is ") + sName + wxT("</br>"));
     }
+
+    if (!sFilename.IsEmpty() && !sUploadType.IsEmpty()) {
+
+        pPage->AddToBody(wxT("<p>Uploaded file name ") + sFilename + wxT(" of type ") + sUploadType + wxT("</br>"));
+
+//        if (sUploadType == wxT("image/jpeg")) {
+        if (TestMimeType( sUploadType, CATEGORY_IMAGE )) {
+            serverPage*     pNewPage = new serverPage(wxT("/images/") + sFilename, serverPage::PAGE_BINARY);
+
+            pNewPage->SetImageData( pThisAttach->data(), pThisAttach->size() );
+            if (pPage->server()->AddPage( *pNewPage )) {
+                pPage->AddToBody(HTML::IMAGE( wxT("/images/") + sFilename, wxEmptyString, 320, 240));
+                pPage->AddToBody( HTML::BR() );
+            }
+
+            delete pNewPage;
+
+        }
+    } else {
+
+    }
+    pPage->AddToBody( HTML::HR() );
+    pPage->AddToBody( HTML::LINK(wxT("Go Back To Home"), wxT("/index.html")) );
 
     return true;
 }
