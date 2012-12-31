@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libmyhttpd" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libmyhttpd_debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --cflags --debug=yes`" />
+					<Add option="-D_DEBUG=1" />
+				</Compiler>
+				<Linker>
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=yes`" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="libmyhttpd_release" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --cflags --debug=no`" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=no`" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="dbgutils.cpp" />
+		<Unit filename="dbgutils.h" />
+		<Unit filename="myhttpd.cpp" />
+		<Unit filename="myhttpd.h" />
+		<Unit filename="mystylesheet.cpp" />
+		<Unit filename="mystylesheet.h" />
+		<Unit filename="mytable.cpp" />
+		<Unit filename="mytable.h" />
+		<Unit filename="myutils.cpp" />
+		<Unit filename="myutils.h" />
+		<Unit filename="serverClasses.cpp" />
+		<Unit filename="serverClasses.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
