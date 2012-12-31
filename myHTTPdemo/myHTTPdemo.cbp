@@ -2,13 +2,14 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="myHTTPd" />
+		<Option title="myHTTPdemo" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/myHTTPd" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/myHTTPdemo" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
+				<Option external_deps="../lib/libmyhttpd_debug.a;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -19,11 +20,13 @@
 				</Compiler>
 				<Linker>
 					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=yes`" />
+					<Add library="../lib/libmyhttpd_debug.a" />
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/myHTTPd" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/myHTTPdemo" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
+				<Option external_deps="../lib/libmyhttpd_release.a;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -34,27 +37,15 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=no`" />
+					<Add library="../lib/libmyhttpd_release.a" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add directory="../lib" />
 		</Compiler>
-		<Unit filename="dbgutils.cpp" />
-		<Unit filename="dbgutils.h" />
-		<Unit filename="lastusedlist.cpp" />
-		<Unit filename="lastusedlist.h" />
 		<Unit filename="main.cpp" />
-		<Unit filename="myhttpd.cpp" />
-		<Unit filename="myhttpd.h" />
-		<Unit filename="mystylesheet.cpp" />
-		<Unit filename="mystylesheet.h" />
-		<Unit filename="mytable.cpp" />
-		<Unit filename="mytable.h" />
-		<Unit filename="myutils.cpp" />
-		<Unit filename="myutils.h" />
-		<Unit filename="serverClasses.cpp" />
-		<Unit filename="serverClasses.h" />
 		<Unit filename="webpages.cpp" />
 		<Unit filename="webpages.h" />
 		<Extensions>
