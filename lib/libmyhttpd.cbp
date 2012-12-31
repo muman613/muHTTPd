@@ -43,6 +43,8 @@
 		</Build>
 		<Unit filename="dbgutils.cpp" />
 		<Unit filename="dbgutils.h" />
+		<Unit filename="myhtmlhelpers.cpp" />
+		<Unit filename="myhtmlhelpers.h" />
 		<Unit filename="myhttpd.cpp" />
 		<Unit filename="myhttpd.h" />
 		<Unit filename="mystylesheet.cpp" />

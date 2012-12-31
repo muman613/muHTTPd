@@ -8,6 +8,7 @@
 #include "serverClasses.h"
 #include "myhttpd.h"
 #include "mytable.h"
+#include "myhtmlhelpers.h"
 #include "myutils.h"
 #include "dbgutils.h"
 

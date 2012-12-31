@@ -30,27 +30,6 @@ typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
         delete pNewPage;                                                        \
     }
 
-
-/**
- *  Helper functions for HTML formatting.
- */
-
-namespace HTML {
-    wxString BOLD(wxString sText);
-    wxString ITALIC(wxString sText);
-    wxString HEADING1(wxString sText);
-    wxString HEADING2(wxString sText);
-    wxString HEADING3(wxString sText);
-    wxString CENTER(wxString sText);
-    wxString BR();
-    wxString HR();
-    wxString LINK(wxString sText, wxString sURL);
-    wxString IMAGE(wxString sSrc, wxString sAlt = wxEmptyString,
-                   int width = 0, int height = 0);
-    wxString SELECT(wxString sName, const wxArrayString& sOptions, wxString sDefault = wxEmptyString);
-    wxString FILEBOX(wxString sFilename, wxString sCaption = wxEmptyString);
-};
-
 /**
  *  Class which encapsulates a multi-part mime attachment.
  */
