@@ -12,6 +12,8 @@
 #include <wx/hashmap.h>
 #include <wx/file.h>
 
+#include "mystylesheet.h"
+
 /* forward declarations */
 class serverPage;
 class serverCatalog;
@@ -203,6 +205,11 @@ public:
     void            SetFavIconName(wxString sIconName);
     wxString        GetFavIconName() const;
 
+    void            SetStyleSheet(const myStyleSheet& cssStyle);
+    void            GetStyleSheet(myStyleSheet& cssStyle);
+
+    myStyleSheet&   StyleSheet();
+
 protected:
     friend class myHTTPdThread;
     friend class serverCatalog;
@@ -241,6 +248,8 @@ protected:
     myHTTPd*        m_server;
 
     wxString        m_sFavIconName;
+
+    myStyleSheet    m_cssStyleSheet;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );

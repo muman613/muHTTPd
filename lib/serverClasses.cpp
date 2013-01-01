@@ -306,7 +306,8 @@ serverPage::serverPage(const serverPage& copy)
     m_flags(copy.m_flags),
     m_cookies(copy.m_cookies),
     m_server(copy.m_server),
-    m_sFavIconName(copy.m_sFavIconName)
+    m_sFavIconName(copy.m_sFavIconName),
+    m_cssStyleSheet(copy.m_cssStyleSheet)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -416,6 +417,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_cookies           = copy.m_cookies;
     m_server            = copy.m_server;
     m_sFavIconName      = copy.m_sFavIconName;
+    m_cssStyleSheet     = copy.m_cssStyleSheet;
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
@@ -765,6 +767,8 @@ wxString serverPage::HTML() {
     /* generate the HEAD section */
     sHTMLText += wxT("<head>") + sHTMLEol;
     sHTMLText += wxT("\t<title>") + m_sPageTitle + wxT("</title>") + sHTMLEol;
+
+
     for (size_t x = 0 ; x < m_sHeadText.Count() ; x++) {
         sHTMLText += wxT("\t") + m_sHeadText[x] + sHTMLEol;
     }
@@ -797,6 +801,21 @@ wxString serverPage::HTML() {
             sHTMLText += wxT("\t") + m_sJScriptText[x] + sHTMLEol;
         }
         sHTMLText += wxT("</script>") + sHTMLEol;
+    }
+
+    if (!m_cssStyleSheet.IsEmpty()) {
+        wxArrayString cssText;
+
+        m_cssStyleSheet.GetCSS( cssText );
+
+        D(debug("-- generating CSS section!\n"));
+        sHTMLText += wxT("\t<style type=\"text/css\">") + sHTMLEol;
+
+        for (size_t i = 0 ; i < cssText.Count() ; i++) {
+            sHTMLText += wxT("\t\t") + cssText[i] + sHTMLEol;
+        }
+
+        sHTMLText += wxT("\t</style>") + sHTMLEol;
     }
 
     sHTMLText += wxT("</head>") + sHTMLEol;
@@ -973,6 +992,26 @@ void serverPage::BodyFromString(const char* szBodyData)
 
     return;
 }
+
+void serverPage::SetStyleSheet(const myStyleSheet& cssStyle) {
+    D(debug("serverPage::SetStyleSheet()\n"));
+
+    m_cssStyleSheet = cssStyle;
+}
+
+void serverPage::GetStyleSheet(myStyleSheet& cssStyle) {
+    cssStyle = m_cssStyleSheet;
+}
+
+
+/**
+ *  Return reference to pages style sheet.
+ */
+
+myStyleSheet&   serverPage::StyleSheet() {
+    return m_cssStyleSheet;
+}
+
 
 #ifdef  _DEBUG
 void serverPage::Dump(FILE* fOut)

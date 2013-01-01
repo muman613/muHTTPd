@@ -82,6 +82,8 @@ public:
     myStyleSheet();
     virtual ~myStyleSheet();
 
+    myStyleSheet&               operator = (const myStyleSheet& copy);
+
     bool                        AddStyle( myStyleElement& elem );
 
     myStyleSheet&               operator +=( myStyleElement& elem );
@@ -90,6 +92,9 @@ public:
     bool                        GetCSS(wxArrayString& cssSheet);
 
     bool                        DumpToFile(FILE* oFP = stdout);
+
+    bool                        IsEmpty() const;
+    void                        Clear();
 
 protected:
     ArrayOfElementStyles        m_styleArray;

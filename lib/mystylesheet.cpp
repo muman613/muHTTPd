@@ -284,14 +284,30 @@ bool myStyleSheet::GetCSS(wxArrayString& cssSheet) {
 
 bool myStyleSheet::DumpToFile(FILE* oFP) {
     bool            bRes = false;
-    wxArrayString   cssSheet;
 
-    if (GetCSS( cssSheet )) {
-        for (size_t i = 0 ; i < cssSheet.Count() ; i++) {
-            fprintf(oFP, "%s\n", cssSheet[i].c_str());
+    if (!IsEmpty()) {
+        wxArrayString   cssSheet;
+
+        if (GetCSS( cssSheet )) {
+            for (size_t i = 0 ; i < cssSheet.Count() ; i++) {
+                fprintf(oFP, "%s\n", cssSheet[i].c_str());
+            }
+            bRes = true;
         }
-        bRes = true;
     }
 
     return bRes;
+}
+
+bool myStyleSheet::IsEmpty() const {
+    return m_styleArray.IsEmpty();
+}
+
+void myStyleSheet::Clear() {
+    m_styleArray.Clear();
+}
+
+myStyleSheet& myStyleSheet::operator = (const myStyleSheet& copy) {
+    m_styleArray = copy.m_styleArray;
+    return *this;
 }

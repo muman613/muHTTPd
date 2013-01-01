@@ -202,7 +202,7 @@ void myHTTPdThread::parse_request()
 
     m_Request.m_headers.clear();
 
-    for (size_t hdr_line = 1 ; hdr_line < m_requestArray.Count() - 1 ; hdr_line++)
+    for (size_t hdr_line = 1 ; hdr_line < m_requestArray.Count() ; hdr_line++)
     {
         wxString sHdrName, sHdrValue;
         int nPos = -1;
