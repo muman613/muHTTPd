@@ -1,3 +1,10 @@
+/**
+ *  @file       main.cpp
+ *  @author     Michael A. Uman
+ *  @date       December 30, 2012
+ *  @brief      Example application using the myHTTPd library.
+ */
+
 #include <wx/wx.h>
 #include <wx/socket.h>
 #include <wx/config.h>
@@ -41,6 +48,8 @@ int main() {
     webServer.SetLogFile("/tmp/myHTTPd.log");
 
     add_serverpages( &webServer );
+
+    printf("Hit Control-C to abort server!\n");
 
     if (webServer.Start()) {
         while (!bDone) {
