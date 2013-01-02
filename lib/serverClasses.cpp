@@ -22,6 +22,7 @@ WX_DEFINE_OBJARRAY( ArrayOfQueries );
 WX_DEFINE_OBJARRAY( ArrayOfAttachPtr );
 
 
+//#define ENABLE_DEBUG_SEND            1    // Enable header debugging
 
 static wxString gsDataPath = wxT("data-dir");
 
@@ -263,7 +264,6 @@ bool myCookie::secure() {
     return m_bSecure;
 }
 
-//#define ENABLE_DEBUG_SEND            1    // Enable header debugging
 
 wxString sHTMLEol = wxT("\r\n");
 static wxString sServerID = wxT("myHTTPd-1.0.0");
@@ -697,7 +697,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
     D(debug("serverPage::Send(%p)\n", pSocket));
 
 #ifdef  ENABLE_DEBUG_SEND
-    fOut = fopen("/tmp/dump.txt", "w");
+    FILE* fOut = fopen("/tmp/http.txt", "w");
 #endif
 
     pSocket->SaveState();
@@ -705,11 +705,15 @@ bool serverPage::Send(wxSocketBase* pSocket)
 
     if (m_type == PAGE_HTML) {
         sHTML = HTML();
+    } else if (m_type == PAGE_CSS) {
+        sHTML = CSS();
+        m_size = sHTML.Length();
     }
 
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
+    sHTTP += wxT("Content-Length: ") + wxString::Format(wxT("%ld"), m_size) + sHTMLEol;
     sHTTP += wxT("Expires: ") +
              wxDateTime::Now().Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC ) +
              sHTMLEol;
@@ -737,7 +741,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
     fwrite(sHTTP.c_str(), sHTTP.Length(), 1, fOut);
 #endif
 
-    if (m_type == PAGE_HTML) {
+    if ((m_type == PAGE_HTML) || (m_type == PAGE_CSS)) {
         pSocket->Write( sHTML.c_str(), sHTML.size());
     } else {
         pSocket->Write( m_pBinaryData, m_size );
@@ -752,6 +756,26 @@ bool serverPage::Send(wxSocketBase* pSocket)
 #endif
 
     return bRes;
+}
+
+wxString serverPage::CSS() {
+    wxString sCSS;
+    D(debug("serverPage::CSS()\n"));
+
+    if (!m_cssStyleSheet.IsEmpty()) {
+        wxArrayString cssText;
+
+        m_cssStyleSheet.GetCSS( cssText );
+
+        D(debug("-- generating CSS section!\n"));
+
+        for (size_t i = 0 ; i < cssText.Count() ; i++) {
+            sCSS += wxT("\t\t") + cssText[i] + sHTMLEol;
+        }
+
+    }
+
+    return sCSS;
 }
 
 /**

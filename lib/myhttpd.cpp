@@ -222,7 +222,7 @@ void myHTTPdThread::parse_request()
                 wxStringTokenizer ckeToke(sHdrValue, wxT("=;"));
                 wxString sCookieID, sCookieVal;
 
-                D(debug("-- handing cookie header!\n"));
+                D(debug("-- handling cookie header!\n"));
                 while (ckeToke.HasMoreTokens()) {
                     sCookieID = ckeToke.GetNextToken().Trim(false);
                     sCookieVal = ckeToke.GetNextToken().Trim(false);
