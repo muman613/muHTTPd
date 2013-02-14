@@ -126,6 +126,8 @@ bool submit_stub(serverPage* pPage, Request* pRequest) {
     if ((pThisAttach = pRequest->FindAttach( wxT("name_of_files") )) != 0) {
         sFilename = pThisAttach->fname();
         sUploadType = pThisAttach->type();
+        
+        pThisAttach->write_file();
     }
 
     pPage->Clear();
