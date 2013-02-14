@@ -28,10 +28,12 @@ OBJS=$(CPP_OBJS)
 
 #	Default rule
 $(OBJ_DIR)/%.o : %.cpp Makefile
-	$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
+	@echo "Compiling $<"
+	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
 
 $(TARGET): $(OBJ_DIR) $(OBJS)
-	$(AR) -r -s $(TARGET) $(OBJS)
+	@echo "Generating static library $(TARGET)"
+	@$(AR) -r -s $(TARGET) $(OBJS)
 
 clean:	.PHONY
 	rm -rf $(OBJS) $(TARGET)
