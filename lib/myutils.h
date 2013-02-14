@@ -13,7 +13,7 @@ typedef enum _typeCategory {
 wxString    GetMimeFromExtenstion(wxString sExtension);
 wxString    GetExtensionFromMime(wxString sMime);
 bool        TestMimeType(wxString sType, TYPE_CATEGORY category);
-
+wxString    GetFilePart(wxString sFullName);
 
 #endif // __MYUTILS_H__
 

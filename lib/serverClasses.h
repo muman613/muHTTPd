@@ -49,9 +49,11 @@ public:
     wxString        type() const     { return m_sContentType; }
     wxString        string() const;
 
+    bool            write_file() const;
+    bool            delete_file() const;
+
 protected:
 
-    bool            write_file();
 
     wxString        m_sName;
     wxString        m_sFilename;
@@ -130,6 +132,7 @@ public:
         PAGE_CSS,
         PAGE_JSCRIPT,
         PAGE_BINARY,
+        PAGE_TEXT,
     } PAGE_TYPE;
 
     serverPage();
@@ -163,9 +166,14 @@ public:
     void            AddToBody(wxString sLine);
 
     void            BodyFromString(const char* sBodyData);
+    bool            SetJavaScript(const wxChar** java);
+    void            SetBodyText(const wxChar** bodyText);
 
     void*           GetPageData();
     void            SetPageData(void* pData);
+
+    bool            SetBinaryPage(wxString sMimeType, void* pData, size_t length);
+    bool            SetTextFile(wxString sMimeType, wxString sFilename);
 
     bool            SetImageFile(wxString sFilename);
     bool            SetImageData(void* pData, size_t length);
@@ -210,13 +218,22 @@ public:
 
     myStyleSheet&   StyleSheet();
 
+    /* Functions controlling page caching */
+    void            EnableCaching(wxDateTime expire_date);
+    void            EnableCaching(wxTimeSpan expire_span);
+    void            DisableCaching();
+
+    void            AddJavascriptLink(wxString sScriptName);
+
 protected:
     friend class myHTTPdThread;
     friend class serverCatalog;
 
     wxString        CSS();                          ///< Generate CSS script
-    wxString        HTML();                         ///< Generate HTML from
-                                                    ///<   head & body sections.
+    wxString        HTML();                         ///< Generate HTML from head & body sections.
+    wxString        TEXT();
+    wxString        JSCRIPT();                      ///< Generate Javascript page
+
     void            Update(Request* pRequest = 0);  ///< Call callback function
                                                     ///<   to regenerate page.
 
@@ -250,6 +267,9 @@ protected:
     wxString        m_sFavIconName;
 
     myStyleSheet    m_cssStyleSheet;
+
+    bool            m_bEnableCaching;
+    wxString        m_sCacheExpires;
 };
 
 WX_DECLARE_STRING_HASH_MAP( serverPage, PAGE_HASH );

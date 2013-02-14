@@ -155,7 +155,7 @@ myAttachment::~myAttachment()
  *
  */
 
-bool myAttachment::write_file() {
+bool myAttachment::write_file() const {
     bool        bRes = false;
     wxFile      outFile;
 
@@ -166,6 +166,24 @@ bool myAttachment::write_file() {
             outFile.Write( m_pData, m_dataLen );
             bRes = true;
     	}
+	}
+
+    return bRes;
+}
+
+/**
+ *
+ */
+
+bool myAttachment::delete_file() const {
+    bool bRes = false;
+
+    D(debug("myAttachment::delete_file()\n"));
+
+    if (wxFileName::FileExists( m_sFilename )) {
+        D(debug("-- removing file %s!\n", m_sFilename.c_str()));
+        ::wxRemoveFile( m_sFilename );
+        bRes = true;
 	}
 
     return bRes;
@@ -281,7 +299,8 @@ serverPage::serverPage()
     m_cbFunc(0L),
     m_type(serverPage::PAGE_HTML),
     m_flags(0L),
-    m_server(0L)
+    m_server(0L),
+    m_bEnableCaching(false)
 {
     // ctor
 }
@@ -307,7 +326,9 @@ serverPage::serverPage(const serverPage& copy)
     m_cookies(copy.m_cookies),
     m_server(copy.m_server),
     m_sFavIconName(copy.m_sFavIconName),
-    m_cssStyleSheet(copy.m_cssStyleSheet)
+    m_cssStyleSheet(copy.m_cssStyleSheet),
+    m_bEnableCaching(copy.m_bEnableCaching),
+    m_sCacheExpires(copy.m_sCacheExpires)
 {
     // ctor
     /* deep copy the binary data if it exists */
@@ -336,7 +357,8 @@ serverPage::serverPage(wxString sPageName, PAGE_CALLBACK pCBFunc)
     m_cbFunc(pCBFunc),
     m_type(serverPage::PAGE_HTML),
     m_flags(0L),
-    m_server(0L)
+    m_server(0L),
+    m_bEnableCaching(false)
 {
     // ctor
 }
@@ -355,7 +377,8 @@ serverPage::serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc
     m_cbFunc(pCBFunc),
     m_type(type),
     m_flags(0L),
-    m_server(0L)
+    m_server(0L),
+    m_bEnableCaching(false)
 {
     // ctor
     switch (type) {
@@ -379,6 +402,9 @@ serverPage::serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc
 
             D(debug("-- mime type is [%s]\n", m_sMimeType.c_str()));
         }
+        break;
+    case PAGE_TEXT:
+        m_sMimeType = wxT("text/plain");
         break;
     }
 }
@@ -418,6 +444,8 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
     m_server            = copy.m_server;
     m_sFavIconName      = copy.m_sFavIconName;
     m_cssStyleSheet     = copy.m_cssStyleSheet;
+    m_bEnableCaching    = copy.m_bEnableCaching;
+    m_sCacheExpires     = copy.m_sCacheExpires;
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
@@ -477,9 +505,20 @@ bool serverPage::SaveToFile(wxString sFilename)
     wxFileName  fname(sFilename);
     wxString    sFullPath;
     wxFile      textFile;
+    wxString    sFileText;
 
     D(debug("serverPage::SaveToFile(%s)\n", sFilename.c_str()));
 
+    if (m_type == PAGE_HTML) {
+        sFileText = HTML();
+    } else if (m_type == PAGE_TEXT) {
+        sFileText = TEXT();
+    } else {
+        fprintf(stderr, "ERROR: Unsupported page type %d.\n", (int)m_type);
+        return false;
+    }
+
+    if (sFilename != wxT("-")) {
     if (fname.IsDir()) {
         fname.Assign( sFilename, m_sPageName );
     } else {
@@ -489,10 +528,22 @@ bool serverPage::SaveToFile(wxString sFilename)
     sFullPath = fname.GetFullPath();
     D(debug("-- saving to file %s\n", sFullPath.c_str()));
 
-    if (textFile.Create( sFullPath.c_str(), true )) {
-        wxString sHTML = HTML();
+        if (!textFile.Create( sFullPath.c_str(), true )) {
+            fprintf(stderr, "ERROR: Unable to open output file %s!\n", sFullPath.c_str());
+            return false;
+        }
 
-        textFile.Write( sHTML );
+    } else {
+        D(debug("-- sending output to standard out!\n"));
+
+        textFile.Attach(wxFile::fd_stdout);
+    }
+
+
+    bRes = textFile.Write( sFileText );
+
+    if (sFilename == wxT("-")) {
+        textFile.Detach();
     }
 
     return bRes;
@@ -533,12 +584,28 @@ bool serverPage::LoadJScript(wxString sScriptName) {
 
     return bRes;
 }
+
+bool serverPage::SetJavaScript(const wxChar** java) {
+    size_t index = 0;
+
+    while (java[index] != 0) {
+        AddToScript( java[index] );
+        index++;
+    }
+
+    return true;
+}
+
 /**
  *
  */
 
 void serverPage::AddToScript(wxString sLine) {
-    m_sJScriptText.Add( sLine);
+    wxArrayString multiLine = wxStringTokenize( sLine, wxT("\n") );
+
+    for (size_t x = 0 ; x < multiLine.size() ; x++) {
+        m_sJScriptText.Add( multiLine[x] );
+    }
 }
 
 /**
@@ -692,7 +759,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
 {
     bool        bRes = false;
     wxString    sHTTP;
-    wxString    sHTML;
+    wxString    sPageText;
 
     D(debug("serverPage::Send(%p)\n", pSocket));
 
@@ -704,19 +771,31 @@ bool serverPage::Send(wxSocketBase* pSocket)
     pSocket->SetFlags(wxSOCKET_WAITALL);
 
     if (m_type == PAGE_HTML) {
-        sHTML = HTML();
+        sPageText = HTML();
+    } else if (m_type == PAGE_TEXT) {
+        sPageText = TEXT();
+        m_size = sPageText.Length();
     } else if (m_type == PAGE_CSS) {
-        sHTML = CSS();
-        m_size = sHTML.Length();
+        sPageText = CSS();
+        m_size = sPageText.Length();
+    } else if (m_type == PAGE_JSCRIPT) {
+        sPageText = JSCRIPT();
+        m_size = sPageText.Length();
     }
 
     sHTTP =  wxT("HTTP/1.1 200 OK") + sHTMLEol;
     sHTTP += wxT("Server: ") + sServerID + sHTMLEol;
     sHTTP += wxT("Content-Type: ") + m_sMimeType + sHTMLEol;
+    if (m_bEnableCaching) {
+        sHTTP += wxT("Expires: ") + m_sCacheExpires + sHTMLEol;
+    } else {
+        sHTTP += wxT("Cache-Control: no-store, no-cache, must-revalidate, max-age=0") + sHTMLEol;
+    }
     sHTTP += wxT("Content-Length: ") + wxString::Format(wxT("%ld"), m_size) + sHTMLEol;
-    sHTTP += wxT("Expires: ") +
-             wxDateTime::Now().Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC ) +
-             sHTMLEol;
+
+//    sHTTP += wxT("Expires: ") +
+//             wxDateTime::Now().Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC ) +
+//             sHTMLEol;
 
 #if 1
     sHTTP += wxT("Connection: Close") + sHTMLEol;
@@ -741,8 +820,12 @@ bool serverPage::Send(wxSocketBase* pSocket)
     fwrite(sHTTP.c_str(), sHTTP.Length(), 1, fOut);
 #endif
 
-    if ((m_type == PAGE_HTML) || (m_type == PAGE_CSS)) {
-        pSocket->Write( sHTML.c_str(), sHTML.size());
+    if ((m_type == PAGE_HTML) ||
+        (m_type == PAGE_CSS)  ||
+        (m_type == PAGE_TEXT) ||
+        (m_type == PAGE_JSCRIPT))
+    {
+        pSocket->Write( sPageText.c_str(), m_size);
     } else {
         pSocket->Write( m_pBinaryData, m_size );
     }
@@ -757,6 +840,10 @@ bool serverPage::Send(wxSocketBase* pSocket)
 
     return bRes;
 }
+
+/**
+ *  Return a string containing all CSS style information.
+ */
 
 wxString serverPage::CSS() {
     wxString sCSS;
@@ -779,6 +866,35 @@ wxString serverPage::CSS() {
 }
 
 /**
+ *  Return a string containing all Javascript lines.
+ */
+
+wxString serverPage::JSCRIPT() {
+    wxString sJScript;
+    D(debug("serverPage::JSCRIPT()\n"));
+
+    for (size_t x = 0 ; x < m_sJScriptText.Count() ; x++) {
+        sJScript += m_sJScriptText[x] + sHTMLEol;
+    }
+
+    return sJScript;
+}
+
+/**
+ *  Return a string containing all body text.
+ */
+
+wxString serverPage::TEXT() {
+    wxString sText;
+
+    for (size_t x = 0 ; x < m_sBodyText.Count() ; x++) {
+        sText += m_sBodyText[x] + wxT("\n");
+    }
+
+    return sText;
+}
+
+/**
  *  Generate the actual HTML for the page from the HEAD and BODY sections.
  */
 
@@ -792,16 +908,16 @@ wxString serverPage::HTML() {
     sHTMLText += wxT("<head>") + sHTMLEol;
     sHTMLText += wxT("\t<title>") + m_sPageTitle + wxT("</title>") + sHTMLEol;
 
-
-    for (size_t x = 0 ; x < m_sHeadText.Count() ; x++) {
-        sHTMLText += wxT("\t") + m_sHeadText[x] + sHTMLEol;
-    }
-
     /* Add the favorite icon link if it exists. */
     if (!m_sFavIconName.IsEmpty()) {
         sTmp = wxString::Format(wxT("\t<link rel=\"icon\" href=\"%s\" type=\"image/x-icon\">"),
                                 m_sFavIconName.c_str()) + sHTMLEol;
         sHTMLText += sTmp;
+    }
+
+    /* Add user generated HEAD section */
+    for (size_t x = 0 ; x < m_sHeadText.Count() ; x++) {
+        sHTMLText += wxT("\t") + m_sHeadText[x] + sHTMLEol;
     }
 
     /* If redirect is set, perform redirection */
@@ -851,11 +967,12 @@ wxString serverPage::HTML() {
     } else {
     	sHTMLText += wxT("<body>") + sHTMLEol;
     }
+
     for (size_t x = 0 ; x < m_sBodyText.Count() ; x++) {
         sHTMLText += wxT("\t") + m_sBodyText[x] + sHTMLEol;
     }
-    sHTMLText += wxT("</body>") + sHTMLEol;
 
+    sHTMLText += wxT("</body>") + sHTMLEol;
     sHTMLText += wxT("</html>") + sHTMLEol;
 
     /* calculate size */
@@ -884,8 +1001,6 @@ bool serverPage::SetImageFile(wxString sFilename) {
         if (pType->GetMimeType(&sContentType)) {
             D(debug("Mime type reported = %s\n", sContentType.c_str()));
             m_sMimeType = sContentType;
-            bRes = true;
-        }
 
         if (pFile.Open( sFilename )) {
             size_t fileSize = pFile.Length();
@@ -898,8 +1013,11 @@ bool serverPage::SetImageFile(wxString sFilename) {
             pFile.Close();
 
             m_type = PAGE_BINARY;
+                bRes = true;
+            }
+        } else {
+            /* */
         }
-
     }
 
     return bRes;
@@ -929,6 +1047,67 @@ bool serverPage::SetImageData(void* pData, size_t length) {
     return true;
 }
 
+/**
+ *  Set binary page data and mime type.
+ */
+
+bool serverPage::SetBinaryPage(wxString sMimeType, void* pData, size_t length) {
+    D(debug("serverPage::SetBinaryPage(%s, %p, %ld)\n",
+            sMimeType.c_str(), pData, length));
+
+    /* if image data already exists, free it... */
+    if (m_pBinaryData != 0) {
+        free(m_pBinaryData);
+        m_pBinaryData       = 0L;
+        m_nBinaryDataSize   = 0L;
+    }
+
+    m_pBinaryData = (void*)malloc(length);
+    memcpy(m_pBinaryData, pData, length);
+
+    m_nBinaryDataSize   = length;
+    m_size              = length;
+    m_type              = PAGE_BINARY;
+    m_sMimeType         = sMimeType;
+
+    return true;
+}
+
+bool serverPage::SetTextFile(wxString sMimeType, wxString sFilename) {
+    bool        bRes = false;
+    wxString    sContentType;
+    wxFileName  fname(sFilename);
+    wxTextFile  pFile;
+
+    D(debug("serverPage::SetTextFile(%s, %s)\n", sMimeType.c_str(), sFilename.c_str()));
+
+    if (fname.FileExists()) {
+        m_sMimeType = sMimeType;
+
+        if (pFile.Open( sFilename )) {
+#if 1
+            Clear();
+            for (size_t x = 0 ; x < pFile.GetLineCount() ; x++) {
+                AddToBody(pFile[x]);
+            }
+#else
+            size_t fileSize = pFile.Length();
+
+            m_pBinaryData = (void*)malloc( fileSize );
+            D(debug("-- binary data @ %p\n", m_pBinaryData));
+            pFile.Read( m_pBinaryData, fileSize );
+            m_size = m_nBinaryDataSize = fileSize;
+            D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
+            pFile.Close();
+#endif
+
+            m_type  = PAGE_TEXT;
+            bRes    = true;
+        }
+    }
+
+    return bRes;
+}
 /**
  *  Add a cookie to the page.
  */
@@ -1017,6 +1196,21 @@ void serverPage::BodyFromString(const char* szBodyData)
     return;
 }
 
+void serverPage::SetBodyText(const wxChar** bodyText) {
+    size_t index = 0;
+
+    D(debug("serverPage::SetBodyText(%p)\n", bodyText));
+
+
+    while (bodyText[index] != 0) {
+        AddToBody( bodyText[index] );
+        index++;
+    }
+
+    return;
+}
+
+
 void serverPage::SetStyleSheet(const myStyleSheet& cssStyle) {
     D(debug("serverPage::SetStyleSheet()\n"));
 
@@ -1036,6 +1230,61 @@ myStyleSheet&   serverPage::StyleSheet() {
     return m_cssStyleSheet;
 }
 
+/**
+ *  Enable client-side caching of this page.
+ */
+
+void serverPage::EnableCaching(wxDateTime expire_date) {
+    D(debug("serverPage::EnableCaching(%s)\n", expire_date.Format(wxDefaultDateTimeFormat).c_str()));
+
+    m_bEnableCaching    = true;
+    m_sCacheExpires     = expire_date.Format(wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
+
+    return;
+}
+
+/**
+ *  Enable client-side caching of this page.
+ */
+
+void serverPage::EnableCaching(wxTimeSpan expire_span) {
+    wxDateTime      expire_date = wxDateTime::Now() + expire_span;
+
+    D(debug("serverPage::EnableCaching(%s)\n", expire_span.Format(wxDefaultTimeSpanFormat).c_str()));
+
+    m_bEnableCaching    = true;
+    m_sCacheExpires     = expire_date.Format(wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
+
+    return;
+}
+
+/**
+ *  Disable client-side caching of this page.
+ */
+
+void serverPage::DisableCaching() {
+    D(debug("serverPage::DisableCaching()\n"));
+
+    m_bEnableCaching  = false;
+    m_sCacheExpires.Clear();
+
+    return;
+}
+
+/**
+ *
+ */
+
+void serverPage::AddJavascriptLink(wxString sScriptName) {
+    wxString sText;
+    D(debug("serverPage::AddJavascriptLink(%s)\n", sScriptName.c_str()));
+
+    sText = wxT("<script type=\"text/javascript\" src=\"") + sScriptName + wxT("\"></script>\n");
+
+    AddToHead( sText );
+
+    return;
+}
 
 #ifdef  _DEBUG
 void serverPage::Dump(FILE* fOut)
@@ -1054,6 +1303,12 @@ void serverPage::Dump(FILE* fOut)
         fprintf(fOut, "Redirect Time  : %d Seconds\n", m_nRedirectTime);
     } else if (m_nRedirectTime > 0) {
         fprintf(fOut, "Refresh Time   : %d Seconds\n", m_nRedirectTime);
+    }
+
+    if (m_bEnableCaching) {
+        fprintf(fOut, "Caching         : Enabled expires @ %s\n", m_sCacheExpires.c_str());
+    } else {
+        fprintf(fOut, "Caching         : Disabled\n");
     }
 
     fprintf(fOut, "\n");

@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include <wx/filename.h>
 #include "myutils.h"
 #include "dbgutils.h"
 
@@ -100,4 +101,14 @@ bool        TestMimeType(wxString sType, TYPE_CATEGORY category)
     }
 
     return bRes;
+}
+
+/**
+ *  Return just file filename without the complete path...
+ */
+
+wxString GetFilePart(wxString sFullName) {
+    wxFileName  fname(sFullName);
+
+    return fname.GetFullName();
 }

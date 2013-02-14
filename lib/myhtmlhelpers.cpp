@@ -5,7 +5,30 @@
  *  Helper functions in namespace HTML.
  */
 
+static wxString generate_opt_string(HTML::HTMLOpts* opts) {
+    wxString sOpts;
+
+    if (opts != 0) {
+        if (!opts->m_sID.IsEmpty())
+            sOpts += wxT(" id=\"") + opts->m_sID + wxT("\"");
+        if (!opts->m_sClass.IsEmpty())
+            sOpts += wxT(" class=\"") + opts->m_sClass + wxT("\"");
+        if (!opts->m_sStyle.IsEmpty())
+            sOpts += wxT(" style=\"") + opts->m_sStyle + wxT("\"");
+        if (!opts->m_sOnClick.IsEmpty())
+            sOpts += wxT(" onclick=\"") + opts->m_sOnClick + wxT("\"");
+    }
+
+    return sOpts;
+}
+
 namespace HTML {
+    void HTMLOpts::clear() {
+        m_sID.Clear();
+        m_sClass.Clear();
+        m_sStyle.Clear();
+        m_sOnClick.Clear();
+    }
 
     wxString BOLD(wxString sText) {
         return wxT("<b>") + sText + wxT("</b>");
@@ -31,8 +54,9 @@ namespace HTML {
         return wxT("<center>") + sText + wxT("</center>");
     }
 
-    wxString LINK(wxString sText, wxString sURL) {
-        return wxT("<a href=\"") + sURL + wxT("\">") + sText + wxT("</a>");
+    wxString LINK(wxString sText, wxString sURL, HTMLOpts* opts) {
+        wxString sOpts = generate_opt_string(opts);
+        return wxT("<a") + sOpts + wxT(" href=\"") + sURL + wxT("\">") + sText + wxT("</a>");
     }
 
     wxString IMAGE(wxString sSrc, wxString sAlt, int width, int height) {
