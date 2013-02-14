@@ -246,17 +246,22 @@ void init_style_sheet(myStyleSheet& sheet) {
 
 bool index_stub(serverPage* page, Request* pRequest)
 {
+    HTML::HTMLOpts opts;
+
     D(debug("index_stub()\n"));
+
+    opts.m_sOnClick = wxT("return confirm_stop();");
 
     page->Clear();
 
     page->SetFavIconName( wxT("images/favicon.ico") );
     page->SetTitle( wxT("Index Page") );
+    page->AddJavascriptLink( wxT("functions.js") );
 
     *page += HTML::CENTER(HTML::HEADING1(wxT("Main Menu")));
     *page += wxT("<div id=\"menu\">");
     *page += wxT("<ul>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html")) + wxT("</li>");
+    *page += wxT("<li>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html"), &opts) + wxT("</li>");
     *page += wxT("<li>") + HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("</li>");
     *page += wxT("<li>") + HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("</li>");
     *page += wxT("</ul>");
@@ -276,6 +281,20 @@ bool index_stub(serverPage* page, Request* pRequest)
     return true;
 }
 
+void add_javascript_page(myHTTPd* pServer) {
+
+    serverPage*     page = 0;
+
+    page = new serverPage(wxT("/functions.js"), serverPage::PAGE_JSCRIPT);
+
+    page->AddToScript( wxT("function confirm_start() {\n\tvar confirmed=confirm(\"Are you sure you want to START test? This destroys previous results!\");\n\treturn confirmed;\n}\n"));
+    page->AddToScript( wxT("function confirm_stop() {\n\tvar confirmed=confirm(\"Are you sure you want to STOP test? Results are incomplete!\");\n\treturn confirmed;\n}\n"));
+
+    pServer->AddPage( *page );
+
+    delete page;
+
+}
 void add_serverpages(myHTTPd* pServer)
 {
     serverPage*     page;
@@ -345,6 +364,9 @@ void add_serverpages(myHTTPd* pServer)
     add_all_images( pServer );
 
     add_404_page( pServer );
+
+
+    add_javascript_page( pServer );
 
     return;
 }
