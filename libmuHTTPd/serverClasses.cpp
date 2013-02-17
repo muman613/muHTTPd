@@ -13,7 +13,7 @@
 #include <wx/mimetype.h>
 #include <wx/tokenzr.h>
 #include "serverClasses.h"
-#include "myutils.h"
+#include "muutils.h"
 #include "dbgutils.h"
 
 #include <wx/arrimpl.cpp>

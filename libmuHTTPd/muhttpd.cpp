@@ -7,7 +7,7 @@
 #include <wx/wx.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
-#include "myhttpd.h"
+#include "muhttpd.h"
 #include "dbgutils.h"
 
 #define ENABLE_DUMP               1

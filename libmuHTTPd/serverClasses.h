@@ -12,7 +12,7 @@
 #include <wx/hashmap.h>
 #include <wx/file.h>
 
-#include "mystylesheet.h"
+#include "mustylesheet.h"
 
 /* forward declarations */
 class serverPage;

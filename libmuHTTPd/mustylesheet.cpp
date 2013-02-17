@@ -9,7 +9,7 @@
 #include <wx/arrstr.h>
 #include <wx/hashmap.h>
 #include <wx/file.h>
-#include "mystylesheet.h"
+#include "mustylesheet.h"
 #include "dbgutils.h"
 
 #include <wx/arrimpl.cpp>

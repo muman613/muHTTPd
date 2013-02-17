@@ -1,6 +1,6 @@
 #include <wx/wx.h>
 #include <wx/filename.h>
-#include "myutils.h"
+#include "muutils.h"
 #include "dbgutils.h"
 
 

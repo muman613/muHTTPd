@@ -1,5 +1,5 @@
 #include <wx/wx.h>
-#include "myhtmlhelpers.h"
+#include "muhtmlhelpers.h"
 
 /**
  *  Helper functions in namespace HTML.
