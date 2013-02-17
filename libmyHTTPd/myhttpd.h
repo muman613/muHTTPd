@@ -35,6 +35,8 @@ public:
     wxString            FindHeader(wxString sHeader);
     wxString            FindQuery(wxString sName);
     const myAttachment* FindAttach(wxString sName);
+    wxString            FindUserAgent();
+    wxString            FindHost();
 
     HEADER_MAP          m_headers;
     ArrayOfCookies      m_cookies;
@@ -67,8 +69,6 @@ private:
     bool                receive_request(wxSocketBase* pSocket);
     bool                handle_attachment(wxString sData);
 
-    static int          m_bufSize;
-    wxUint8*            m_buf;
     int                 m_portNum;
     wxSocketServer*     m_sockServer;
     wxArrayString       m_requestArray;

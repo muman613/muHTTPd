@@ -14,7 +14,6 @@
 #include "myhttpd.h"
 #include "dbgutils.h"
 
-//#define DUMP_RAW_REQUEST          1
 #define ENABLE_DUMP               1
 
 /**
@@ -43,7 +42,7 @@ wxString Request::FindHeader(wxString sHeader) {
     HEADER_MAP::iterator it;
 
     for (it = m_headers.begin() ; it != m_headers.end() ; it++) {
-        if (it->first == sHeader) {
+        if (it->first.CmpNoCase(sHeader) == 0) {
             sResult = it->second;
             break;
         }
@@ -81,6 +80,7 @@ const myAttachment* Request::FindAttach(wxString sName) {
 
     return (myAttachment*)0L;
 }
+
 /**
  *  Return the referring URL.
  */
@@ -90,9 +90,17 @@ wxString Request::Referer()
     return FindHeader( wxT("Referer") );
 }
 
-/*----------------------------------------------------------------------------*/
+/**
+ *
+ */
 
-int myHTTPdThread::m_bufSize = 5000;    // Maximum request size
+wxString Request::FindUserAgent()
+{
+    return FindHeader( wxT("User-Agent") );
+}
+
+
+/*----------------------------------------------------------------------------*/
 
 /**
  *
@@ -100,12 +108,10 @@ int myHTTPdThread::m_bufSize = 5000;    // Maximum request size
 
 myHTTPdThread::myHTTPdThread(myHTTPd* parent, int portNum)
 :   wxThread(wxTHREAD_JOINABLE),
-    m_buf(0),
     m_portNum(portNum),
     m_pParent(parent)
 {
     // ctor
-    m_buf = new wxUint8[m_bufSize];
 }
 
 /**
@@ -115,7 +121,6 @@ myHTTPdThread::myHTTPdThread(myHTTPd* parent, int portNum)
 myHTTPdThread::~myHTTPdThread()
 {
     // dtor
-    delete [] m_buf;
     Clear();
 }
 
@@ -125,7 +130,6 @@ myHTTPdThread::~myHTTPdThread()
 
 void myHTTPdThread::parse_request()
 {
-//    char*       pos;
     wxString    sLine, sQuery;
     int         nPos;
 
@@ -134,26 +138,6 @@ void myHTTPdThread::parse_request()
     m_method.Clear();
     m_url.Clear();
     m_reqver.Clear();
-
-#ifdef OLDWAY
-
-    m_requestArray.Clear();
-
-    char*       pos;
-
-    pos = (char *)m_buf;
-
-    while (*pos != 0) {
-        if (*pos == '\n') {
-            m_requestArray.Add( sLine );
-            sLine.Clear();
-        } else {
-            if (*pos != '\r')
-                sLine += *pos;
-        }
-        pos++;
-    }
-#endif
 
     D(debug("-- found %ld lines\n", m_requestArray.Count()));
 
@@ -484,11 +468,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
 
     D(debug("Connection received from %s:%s\n", m_sPeerHost.c_str(), m_sPeerPort.c_str()));
 
-    memset(m_buf, 0, m_bufSize);
-
     while (!bDone && !TestDestroy()) {
-        //char c;
-
         if (pSocket->WaitForRead(0, 1000)) {
 
             Clear();
@@ -515,6 +495,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                 } else {
                     ReturnError(pSocket, 501, (char*)"Not Implemented");
                 }
+
                 bDone = true;
             } else {
                 bDone = true;
