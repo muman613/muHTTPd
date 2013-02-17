@@ -68,6 +68,10 @@ wxString Request::FindQuery(wxString sName) {
     return sResult;
 }
 
+/**
+ *
+ */
+
 const myAttachment* Request::FindAttach(wxString sName) {
     D(debug("Request::FindAttach(%s)\n", sName.c_str()));
 
@@ -85,7 +89,7 @@ const myAttachment* Request::FindAttach(wxString sName) {
  *  Return the referring URL.
  */
 
-wxString Request::Referer()
+wxString Request::FindReferer()
 {
     return FindHeader( wxT("Referer") );
 }
@@ -99,7 +103,16 @@ wxString Request::FindUserAgent()
     return FindHeader( wxT("User-Agent") );
 }
 
+/**
+ *
+ */
 
+wxString Request::FindHost()
+{
+    return FindHeader( wxT("Host") );
+}
+
+/*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 
 /**

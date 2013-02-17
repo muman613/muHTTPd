@@ -29,12 +29,11 @@ WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
 
 class Request {
 public:
-    wxString            Referer();
-
     wxString            FindCookie(wxString sName);
     wxString            FindHeader(wxString sHeader);
     wxString            FindQuery(wxString sName);
     const myAttachment* FindAttach(wxString sName);
+    wxString            FindReferer();
     wxString            FindUserAgent();
     wxString            FindHost();
 
