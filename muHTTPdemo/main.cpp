@@ -2,7 +2,7 @@
  *  @file       main.cpp
  *  @author     Michael A. Uman
  *  @date       December 30, 2012
- *  @brief      Example application using the myHTTPd library.
+ *  @brief      Example application using the muHTTPd library.
  */
 
 #include <wx/wx.h>
@@ -43,9 +43,9 @@ int main() {
 
     signal( SIGINT, signal_sigint_handler );
 
-    myHTTPd         webServer(8080);
+    muHTTPd         webServer(8080);
 
-    webServer.SetLogFile("/tmp/myHTTPd.log");
+    webServer.SetLogFile("/tmp/muHTTPd.log");
 
     add_serverpages( &webServer );
 

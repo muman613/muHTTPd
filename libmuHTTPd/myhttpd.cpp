@@ -109,14 +109,14 @@ wxString Request::FindHost()
 }
 
 /*----------------------------------------------------------------------------*/
-/*  myHTTPdThread Class Implementation                                        */
+/*  muHTTPdThread Class Implementation                                        */
 /*----------------------------------------------------------------------------*/
 
 /**
  *
  */
 
-myHTTPdThread::myHTTPdThread(myHTTPd* parent, int portNum)
+muHTTPdThread::muHTTPdThread(muHTTPd* parent, int portNum)
 :   wxThread(wxTHREAD_JOINABLE),
     m_portNum(portNum),
     m_pParent(parent)
@@ -128,7 +128,7 @@ myHTTPdThread::myHTTPdThread(myHTTPd* parent, int portNum)
  *
  */
 
-myHTTPdThread::~myHTTPdThread()
+muHTTPdThread::~muHTTPdThread()
 {
     // dtor
     Clear();
@@ -138,12 +138,12 @@ myHTTPdThread::~myHTTPdThread()
  *  Break request buffer up into seperate lines stored in wxArrayString.
  */
 
-void myHTTPdThread::parse_request()
+void muHTTPdThread::parse_request()
 {
     wxString    sLine, sQuery;
     int         nPos;
 
-    D(debug("myHTTPdThread::parse_request()\n"));
+    D(debug("muHTTPdThread::parse_request()\n"));
 
     m_method.Clear();
     m_url.Clear();
@@ -247,9 +247,9 @@ void myHTTPdThread::parse_request()
  *
  */
 
-void myHTTPdThread::Clear()
+void muHTTPdThread::Clear()
 {
-    D(debug("myHTTPdThread::Clear()\n"));
+    D(debug("muHTTPdThread::Clear()\n"));
 
     m_requestArray.Clear();
     m_Request.m_cookies.Clear();
@@ -268,7 +268,7 @@ void myHTTPdThread::Clear()
  *
  */
 
-bool myHTTPdThread::handle_attachment( wxString sData )
+bool muHTTPdThread::handle_attachment( wxString sData )
 {
     myAttachment*   pNewAttachment;
 
@@ -290,12 +290,12 @@ bool myHTTPdThread::handle_attachment( wxString sData )
  *
  */
 
-bool myHTTPdThread::receive_request(wxSocketBase* pSocket) {
+bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
     bool bRes = false;
     bool bDone = false;
     wxString sLine;
 
-    D(debug("myHTTPdThread::receive_request(%p)\n", pSocket));
+    D(debug("muHTTPdThread::receive_request(%p)\n", pSocket));
 
     pSocket->SaveState();
     pSocket->SetFlags( wxSOCKET_NOWAIT );
@@ -456,13 +456,13 @@ exitReceive:
  *
  */
 
-void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
+void muHTTPdThread::handle_connection(wxSocketBase* pSocket)
 {
     bool            bDone = false;
     wxSockAddress   *localInfo = 0L,
                     *peerInfo = 0L;
 
-    D(debug("myHTTPdThread::handle_connection(%p)\n", pSocket));
+    D(debug("muHTTPdThread::handle_connection(%p)\n", pSocket));
 
     /* Determine connection peer */
     localInfo = new wxIPV4address;
@@ -498,7 +498,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                         m_url.c_str(),
                         m_reqver.c_str()));
 
-                m_pParent->LogMessage( myHTTPd::LOG_MSG,
+                m_pParent->LogMessage( muHTTPd::LOG_MSG,
                                        wxString::Format(wxT("%s %s %s from %s.%s (%s)"),
                                                         m_method.c_str(),
                                                         m_url.c_str(),
@@ -536,7 +536,7 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
  *  Handle the HTTP 'GET' request.
  */
 
-void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
+void muHTTPdThread::handle_get_method(wxSocketBase* pSocket)
 {
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
@@ -548,7 +548,7 @@ void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
         D(debug("-- requested invalid page %s\n", m_url.c_str()));
         ReturnError(pSocket, 404, (char *)"Not Found");
 
-        m_pParent->LogMessage( myHTTPd::LOG_WARN,
+        m_pParent->LogMessage( muHTTPd::LOG_WARN,
                                wxString::Format(wxT("Request For Invalid Page %s"),
                                                 m_url.c_str()) );
     }
@@ -560,7 +560,7 @@ void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
  *  Handle the HTTP 'POST' request.
  */
 
-void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
+void muHTTPdThread::handle_post_method(wxSocketBase* pSocket)
 {
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
@@ -572,7 +572,7 @@ void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
         D(debug("-- requested invalid page %s\n", m_url.c_str()));
         ReturnError(pSocket, 404, (char *)"Not Found");
 
-        m_pParent->LogMessage( myHTTPd::LOG_WARN,
+        m_pParent->LogMessage( muHTTPd::LOG_WARN,
                                wxString::Format(wxT("Request For Invalid Page %s"),
                                                 m_url.c_str()) );
     }
@@ -584,12 +584,12 @@ void myHTTPdThread::handle_post_method(wxSocketBase* pSocket)
  *
  */
 
-void myHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* description)
+void muHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* description)
 {
     wxString sResponseHeader, sResponseHTML;
     serverPage* p404Page = 0L;
 
-    D(debug("myHTTPdThread::ReturnError(%p, %d, %s)\n", pSocket, code, description));
+    D(debug("muHTTPdThread::ReturnError(%p, %d, %s)\n", pSocket, code, description));
 
     if ((code == 404) && ((p404Page = m_pParent->Get404Page()) != 0L)) {
         sResponseHTML = p404Page->HTML();
@@ -604,7 +604,7 @@ void myHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* descripti
     } else {
         char response[500];
 
-        sprintf( response, "HTTP/1.1 %d %s\r\nserver: myHTTPd-1.0.0\r\n"
+        sprintf( response, "HTTP/1.1 %d %s\r\nserver: muHTTPd-1.0.0\r\n"
                            "content-type: text/plain\r\n"
                            "content-length: %ld\r\n\r\n%s",
                            code, description, strlen(description), description );
@@ -619,12 +619,12 @@ void myHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* descripti
  *
  */
 
-wxThread::ExitCode myHTTPdThread::Entry()
+wxThread::ExitCode muHTTPdThread::Entry()
 {
     bool                bDone = false;
     wxIPV4address       addr;
 
-    D(debug("myHTTPdThread::Entry()\n"));
+    D(debug("muHTTPdThread::Entry()\n"));
 
     addr.AnyAddress();
     addr.Service(m_portNum);
@@ -670,17 +670,17 @@ wxThread::ExitCode myHTTPdThread::Entry()
 }
 
 /*----------------------------------------------------------------------------*/
-/*  myHTTPd class implementation                                              */
+/*  muHTTPd class implementation                                              */
 /*----------------------------------------------------------------------------*/
 
 /**
  *
  */
 
-myHTTPd::myHTTPd(int portNum)
+muHTTPd::muHTTPd(int portNum)
 :   m_nPort(portNum),
     m_serverThread(0L),
-    m_sLogFilename(wxT("/tmp/myHTTPd.log")),
+    m_sLogFilename(wxT("/tmp/muHTTPd.log")),
     m_pLogFile(0L),
     m_p404Page(0L)
 {
@@ -688,10 +688,10 @@ myHTTPd::myHTTPd(int portNum)
 }
 
 /**
- *  myHTTPd destructor.
+ *  muHTTPd destructor.
  */
 
-myHTTPd::~myHTTPd()
+muHTTPd::~muHTTPd()
 {
     /* If a 404 page was allocated, delete it... */
     if (m_p404Page != 0L) {
@@ -709,11 +709,11 @@ myHTTPd::~myHTTPd()
  *  If the server is already running this function returns false.
  */
 
-bool myHTTPd::SetPort(int portNum)
+bool muHTTPd::SetPort(int portNum)
 {
     bool bRes = false;
 
-    D(debug("myHTTPd::SetPort(%d)\n", portNum));
+    D(debug("muHTTPd::SetPort(%d)\n", portNum));
 
     if (m_serverThread != 0L) {
         m_nPort = portNum;
@@ -727,8 +727,8 @@ bool myHTTPd::SetPort(int portNum)
  *  Close the log file.
  */
 
-void myHTTPd::CloseLogFile() {
-    D(debug("myHTTPd::CloseLogFile()\n"));
+void muHTTPd::CloseLogFile() {
+    D(debug("muHTTPd::CloseLogFile()\n"));
 
     if (m_pLogFile) {
         if (m_pLogFile->IsOpened()) {
@@ -748,13 +748,13 @@ void myHTTPd::CloseLogFile() {
  *  @param bAppend          true if log messages should append to existing log.
  */
 
-bool myHTTPd::SetLogFile(wxString sLogFilename, bool bAppend)
+bool muHTTPd::SetLogFile(wxString sLogFilename, bool bAppend)
 {
     bool                bRes    = false;
     wxFile::OpenMode    logMode = (bAppend == true)?wxFile::write_append:
                                                     wxFile::write;
 
-    D(debug("myHTTPd::SetLogFile(%s)\n", sLogFilename.c_str()));
+    D(debug("muHTTPd::SetLogFile(%s)\n", sLogFilename.c_str()));
 
     CloseLogFile(); // Close any existing log file.
 
@@ -779,7 +779,7 @@ bool myHTTPd::SetLogFile(wxString sLogFilename, bool bAppend)
  *  Send a message to the log file.
  */
 
-bool myHTTPd::LogMessage(logType nType, wxString sMsg)
+bool muHTTPd::LogMessage(logType nType, wxString sMsg)
 {
     bool bRes = false;
     if (m_pLogFile != 0L) {
@@ -816,14 +816,14 @@ bool myHTTPd::LogMessage(logType nType, wxString sMsg)
  *  Start the HTTP server running.
  */
 
-bool myHTTPd::Start()
+bool muHTTPd::Start()
 {
     bool            bRes        = false;
-    myHTTPdThread*  pNewThread  = 0L;
+    muHTTPdThread*  pNewThread  = 0L;
 
     D(debug("myHTTPD::Start()\n"));
 
-    pNewThread = new myHTTPdThread(this, m_nPort);
+    pNewThread = new muHTTPdThread(this, m_nPort);
 
     if (pNewThread) {
         if (pNewThread->Create() == wxTHREAD_NO_ERROR) {
@@ -844,7 +844,7 @@ bool myHTTPd::Start()
  *  Stop the server thread.
  */
 
-bool myHTTPd::Stop()
+bool muHTTPd::Stop()
 {
     D(debug("myHTTPD::Stop()\n"));
 
@@ -867,11 +867,11 @@ bool myHTTPd::Stop()
  *  Page name must be unique, otherwise this function returns false.
  */
 
-bool myHTTPd::AddPage(serverPage& page)
+bool muHTTPd::AddPage(serverPage& page)
 {
     bool bRes = false;
 
-    D(debug("myHTTPd::AddPage(name=%s)\n", page.GetPageName().c_str()));
+    D(debug("muHTTPd::AddPage(name=%s)\n", page.GetPageName().c_str()));
 
     if ( !PageExists( page.GetPageName() ) ) {
         page.server(this);              // set the server pointer...
@@ -886,9 +886,9 @@ bool myHTTPd::AddPage(serverPage& page)
  *
  */
 
-serverPage* myHTTPd::GetPage(wxString sPageName, Request* pRequest)
+serverPage* muHTTPd::GetPage(wxString sPageName, Request* pRequest)
 {
-    D(debug("myHTTPd::GetPage(%s)\n", sPageName.c_str()));
+    D(debug("muHTTPd::GetPage(%s)\n", sPageName.c_str()));
     return m_catalog.GetPage( sPageName, pRequest );
 }
 
@@ -896,8 +896,8 @@ serverPage* myHTTPd::GetPage(wxString sPageName, Request* pRequest)
  *  Determine if a page with name 'sPageName' is in the catalog.
  */
 
-bool myHTTPd::PageExists(wxString sPageName) {
-    D(debug("myHTTPd::PageExists(%s)\n", sPageName.c_str()));
+bool muHTTPd::PageExists(wxString sPageName) {
+    D(debug("muHTTPd::PageExists(%s)\n", sPageName.c_str()));
     return m_catalog.PageExists( sPageName );
 }
 
@@ -905,8 +905,8 @@ bool myHTTPd::PageExists(wxString sPageName) {
  *  Set the 404 page to the contents of 'page'.
  */
 
-void myHTTPd::Set404Page(serverPage& page) {
-    D(debug("myHTTPd::Set404Page(...)\n"));
+void muHTTPd::Set404Page(serverPage& page) {
+    D(debug("muHTTPd::Set404Page(...)\n"));
 
     if (m_p404Page != 0L) {
         delete m_p404Page;
@@ -922,6 +922,6 @@ void myHTTPd::Set404Page(serverPage& page) {
  *  Return pointer to users 404 page.
  */
 
-serverPage* myHTTPd::Get404Page() {
+serverPage* muHTTPd::Get404Page() {
     return m_p404Page;
 }

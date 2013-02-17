@@ -2,7 +2,7 @@
  *  @file       serverClasses.h
  *  @author     Michael A. Uman
  *  @date       December 5, 2012
- *  @brief      Classes used by myHTTPd to represent pages, cookies, & queries.
+ *  @brief      Classes used by muHTTPd to represent pages, cookies, & queries.
  */
 
 #ifndef __SERVERCLASSES_H__
@@ -21,7 +21,7 @@ class wxSocketBase;
 class HEADER_MAP;
 class Request;
 class wxFile;
-class myHTTPd;
+class muHTTPd;
 
 typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
 
@@ -206,8 +206,8 @@ public:
     void            SetFlags(wxUint32 flags);
     void            ClearFlags(wxUint32 flags);
 
-    void            server(myHTTPd* pServer) { m_server = pServer; }
-    myHTTPd*        server() const { return m_server; }
+    void            server(muHTTPd* pServer) { m_server = pServer; }
+    muHTTPd*        server() const { return m_server; }
 
     /* Functions to get/set the favorite icon name */
     void            SetFavIconName(wxString sIconName);
@@ -226,7 +226,7 @@ public:
     void            AddJavascriptLink(wxString sScriptName);
 
 protected:
-    friend class myHTTPdThread;
+    friend class muHTTPdThread;
     friend class serverCatalog;
 
     wxString        CSS();                          ///< Generate CSS script
@@ -262,7 +262,7 @@ protected:
 //    HEADER_MAP*     m_pHeaders;
     ArrayOfCookies  m_cookies;
 
-    myHTTPd*        m_server;
+    muHTTPd*        m_server;
 
     wxString        m_sFavIconName;
 

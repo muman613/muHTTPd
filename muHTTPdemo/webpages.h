@@ -4,10 +4,10 @@
 #include <wx/wx.h>
 class serverPage;
 class Request;
-class myHTTPd;
+class muHTTPd;
 
 wxString generate_table();
 bool page3_stub(serverPage* pPage, Request* pRequest);
-void add_serverpages(myHTTPd* pServer);
+void add_serverpages(muHTTPd* pServer);
 
 #endif // _WEBPAGES_H_

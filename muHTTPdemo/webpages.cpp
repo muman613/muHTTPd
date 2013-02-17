@@ -92,7 +92,7 @@ bool page3_stub(serverPage* pPage, Request* pRequest)
  *  Add an image page from memory to the page catalog.
  */
 
-bool add_image_page(myHTTPd* pServer, wxString pageName, wxString sMimeType,
+bool add_image_page(muHTTPd* pServer, wxString pageName, wxString sMimeType,
                     void* pData, size_t length)
 {
     serverPage*     page = new serverPage( pageName );
@@ -195,7 +195,7 @@ const char* sz404Text = \
 "</DIV></CENTER>\n";
 
 
-void add_404_page( myHTTPd* pServer) {
+void add_404_page( muHTTPd* pServer) {
     serverPage* pNewPage;
     D(debug("add_404_page()\n"));
 
@@ -215,7 +215,7 @@ void add_404_page( myHTTPd* pServer) {
     #include "image/html_debuggerfe_ico.h"
 #endif
 
-void add_all_images(myHTTPd* pServer) {
+void add_all_images(muHTTPd* pServer) {
     /* Add all images here */
     add_image_page( pServer, wxT("/images/image.jpg"), wxT("image/jpeg"),
                     html_002_00_jpg, html_002_00_jpg_len );
@@ -283,7 +283,7 @@ bool index_stub(serverPage* page, Request* pRequest)
     return true;
 }
 
-void add_javascript_page(myHTTPd* pServer) {
+void add_javascript_page(muHTTPd* pServer) {
 
     serverPage*     page = 0;
 
@@ -297,7 +297,7 @@ void add_javascript_page(myHTTPd* pServer) {
     delete page;
 
 }
-void add_serverpages(myHTTPd* pServer)
+void add_serverpages(muHTTPd* pServer)
 {
     serverPage*     page;
 

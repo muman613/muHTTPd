@@ -2,7 +2,7 @@
  *  @file       serverClasses.cpp
  *  @author     Michael A. Uman
  *  @date       December 5, 2012
- *  @brief      Classes used by myHTTPd to represent pages, cookies, & queries.
+ *  @brief      Classes used by muHTTPd to represent pages, cookies, & queries.
  */
 
 #include <wx/wx.h>
@@ -284,7 +284,7 @@ bool myCookie::secure() {
 
 
 wxString sHTMLEol = wxT("\r\n");
-static wxString sServerID = wxT("myHTTPd-1.0.0");
+static wxString sServerID = wxT("muHTTPd-1.0.0");
 
 /**
  *

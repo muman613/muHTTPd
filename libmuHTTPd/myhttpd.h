@@ -16,8 +16,8 @@
 
 #include "serverClasses.h"
 
-class myHTTPd;
-class myHTTPdThread;
+class muHTTPd;
+class muHTTPdThread;
 
 #define DEFAULT_PORT            (8080)
 
@@ -47,10 +47,10 @@ public:
  *  Class representing background thread of webserver.
  */
 
-class myHTTPdThread : public wxThread {
+class muHTTPdThread : public wxThread {
 public:
-    myHTTPdThread(myHTTPd* parent, int portNum);
-    virtual ~myHTTPdThread();
+    muHTTPdThread(muHTTPd* parent, int portNum);
+    virtual ~muHTTPdThread();
 
     ExitCode Entry();
 
@@ -84,7 +84,7 @@ private:
     wxString            m_useragent;
     wxString            m_host;
 
-    myHTTPd*            m_pParent;
+    muHTTPd*            m_pParent;
     Request             m_Request;
 };
 
@@ -93,10 +93,10 @@ private:
  *  The control class for the HTTP daemon.
  */
 
-class myHTTPd {
+class muHTTPd {
     public:
-        myHTTPd(int portNum = DEFAULT_PORT);
-        virtual ~myHTTPd();
+        muHTTPd(int portNum = DEFAULT_PORT);
+        virtual ~muHTTPd();
 
         bool            SetPort(int portNum = DEFAULT_PORT);
 
@@ -124,7 +124,7 @@ class myHTTPd {
 
         int             m_nPort;
 
-        myHTTPdThread*  m_serverThread;
+        muHTTPdThread*  m_serverThread;
         serverCatalog   m_catalog;
         wxString        m_sLogFilename;     ///< Log filename.
         wxFile*         m_pLogFile;         ///< File used for logging.
