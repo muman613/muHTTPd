@@ -2,8 +2,8 @@
 #	Makefile
 ###############################################################################
 
-CPP_SOURCES=myhtmlhelpers.cpp myhttpd.cpp mystylesheet.cpp \
-            mytable.cpp myutils.cpp serverClasses.cpp
+CPP_SOURCES=muhtmlhelpers.cpp muhttpd.cpp mustylesheet.cpp \
+            mutable.cpp muutils.cpp serverClasses.cpp
 
 #	Tools
 
@@ -12,12 +12,12 @@ GCC=gcc
 AR=ar
 
 ifdef DEBUG
-	TARGET=libmyhttpd_debug.a
+	TARGET=libmuhttpd_debug.a
 	CFLAGS+= -D_DEBUG=1 -g
 	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=yes)
 	OBJ_DIR=obj/Debug
 else
-	TARGET=libmyhttpd_release.a
+	TARGET=libmuhttpd_release.a
 	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=no)
 	OBJ_DIR=obj/Release
 endif
@@ -46,11 +46,11 @@ $(OBJ_DIR): .PHONY
 
 # DO NOT DELETE
 
-$(OBJ_DIR)/myhtmlhelpers.o: myhtmlhelpers.h
-$(OBJ_DIR)/myhttpd.o: myhttpd.h serverClasses.h mystylesheet.h dbgutils.h
-$(OBJ_DIR)/mystylesheet.o: mystylesheet.h dbgutils.h
-$(OBJ_DIR)/mytable.o: mytable.h dbgutils.h
-$(OBJ_DIR)/myutils.o: myutils.h dbgutils.h
-$(OBJ_DIR)/serverClasses.o: serverClasses.h mystylesheet.h myutils.h
+$(OBJ_DIR)/muhtmlhelpers.o: muhtmlhelpers.h
+$(OBJ_DIR)/muhttpd.o: muhttpd.h serverClasses.h mustylesheet.h dbgutils.h
+$(OBJ_DIR)/mustylesheet.o: mustylesheet.h dbgutils.h
+$(OBJ_DIR)/mutable.o: mutable.h dbgutils.h
+$(OBJ_DIR)/muutils.o: muutils.h dbgutils.h
+$(OBJ_DIR)/serverClasses.o: serverClasses.h mustylesheet.h muutils.h
 $(OBJ_DIR)/serverClasses.o: dbgutils.h
 

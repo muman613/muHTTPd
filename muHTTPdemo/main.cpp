@@ -13,8 +13,8 @@
 #include "dbgutils.h"
 #include "serverClasses.h"
 #include "webpages.h"
-#include "myhttpd.h"
-#include "mytable.h"
+#include "muhttpd.h"
+#include "mutable.h"
 
 bool bDone = false;
 

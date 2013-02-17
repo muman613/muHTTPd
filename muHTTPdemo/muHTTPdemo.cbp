@@ -2,14 +2,14 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="myHTTPdemo" />
+		<Option title="muHTTPdemo" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/myHTTPdemo" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/muHTTPdemo" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
-				<Option external_deps="../libmyHTTPd/libmyhttpd_debug.a;" />
+				<Option external_deps="../libmuHTTPd/libmuhttpd_debug.a;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -20,13 +20,13 @@
 				</Compiler>
 				<Linker>
 					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=yes`" />
-					<Add library="../libmyHTTPd/libmyhttpd_debug.a" />
+					<Add library="../libmuHTTPd/libmuhttpd_debug.a" />
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/myHTTPdemo" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/muHTTPdemo" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
-				<Option external_deps="../libmyHTTPd/libmyhttpd_release.a;" />
+				<Option external_deps="../libmuHTTPd/libmuhttpd_release.a;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -37,13 +37,13 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="`/opt/wxWidgets/2.8.12/bin/wx-config --libs --debug=no`" />
-					<Add library="../libmyHTTPd/libmyhttpd_release.a" />
+					<Add library="../libmuHTTPd/libmuhttpd_release.a" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add directory="../libmyHTTPd" />
+			<Add directory="../libmuHTTPd" />
 		</Compiler>
 		<Unit filename="main.cpp" />
 		<Unit filename="webpages.cpp" />

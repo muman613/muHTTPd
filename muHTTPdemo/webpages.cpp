@@ -6,10 +6,10 @@
 
 #include <wx/wx.h>
 #include "serverClasses.h"
-#include "myhttpd.h"
-#include "mytable.h"
-#include "myhtmlhelpers.h"
-#include "myutils.h"
+#include "muhttpd.h"
+#include "mutable.h"
+#include "muhtmlhelpers.h"
+#include "muutils.h"
 #include "dbgutils.h"
 
 myStyleSheet    sheet;
