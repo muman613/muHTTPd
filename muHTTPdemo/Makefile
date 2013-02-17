@@ -27,7 +27,7 @@ else
 	EXTERN_LIBS+=../libmuHTTPd/libmuhttpd_release.a
 endif
 
-TARGET=$(EXE_DIR)/crcServantWeb
+TARGET=$(EXE_DIR)/muHTTPdemo
 
 INCLUDES=-I ../libmuHTTPd/
 CFLAGS+=$(WX_CFLAGS) $(INCLUDES)
