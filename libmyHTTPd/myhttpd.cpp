@@ -4,13 +4,9 @@
  *  @date       December 2, 2012
  */
 
-//#define OLDWAY  1
-
 #include <wx/wx.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
-
-
 #include "myhttpd.h"
 #include "dbgutils.h"
 
@@ -113,6 +109,7 @@ wxString Request::FindHost()
 }
 
 /*----------------------------------------------------------------------------*/
+/*  myHTTPdThread Class Implementation                                        */
 /*----------------------------------------------------------------------------*/
 
 /**
@@ -151,6 +148,8 @@ void myHTTPdThread::parse_request()
     m_method.Clear();
     m_url.Clear();
     m_reqver.Clear();
+    m_useragent.Clear();
+    m_host.Clear();
 
     D(debug("-- found %ld lines\n", m_requestArray.Count()));
 
@@ -234,6 +233,12 @@ void myHTTPdThread::parse_request()
             }
         }
     }
+
+    m_host      = m_Request.FindHost();
+    m_useragent = m_Request.FindUserAgent();
+
+    D(debug("  Request for host : %s\n"
+            "Request from agent : %s\n", m_host.c_str(), m_useragent.c_str()));
 
     return;
 }
@@ -494,12 +499,13 @@ void myHTTPdThread::handle_connection(wxSocketBase* pSocket)
                         m_reqver.c_str()));
 
                 m_pParent->LogMessage( myHTTPd::LOG_MSG,
-                                       wxString::Format(wxT("%s %s %s from %s.%s"),
+                                       wxString::Format(wxT("%s %s %s from %s.%s (%s)"),
                                                         m_method.c_str(),
                                                         m_url.c_str(),
                                                         m_reqver.c_str(),
                                                         m_sPeerHost.c_str(),
-                                                        m_sPeerPort.c_str()) );
+                                                        m_sPeerPort.c_str(),
+                                                        m_useragent.c_str()) );
 
                 if (m_method == wxT("GET")) {
                     handle_get_method(pSocket);
@@ -549,6 +555,7 @@ void myHTTPdThread::handle_get_method(wxSocketBase* pSocket)
 
     return;
 }
+
 /**
  *  Handle the HTTP 'POST' request.
  */
@@ -662,6 +669,8 @@ wxThread::ExitCode myHTTPdThread::Entry()
     return 0;
 }
 
+/*----------------------------------------------------------------------------*/
+/*  myHTTPd class implementation                                              */
 /*----------------------------------------------------------------------------*/
 
 /**

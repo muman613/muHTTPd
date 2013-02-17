@@ -81,6 +81,9 @@ private:
     wxString            m_url;
     wxString            m_reqver;
 
+    wxString            m_useragent;
+    wxString            m_host;
+
     myHTTPd*            m_pParent;
     Request             m_Request;
 };
