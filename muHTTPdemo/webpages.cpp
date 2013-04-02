@@ -1,7 +1,7 @@
 /**
  *  @file       webpages.cpp
  *  @author     Michael A. Uman
- *  @date       December 26, 2012
+ *  @date       April 1, 2013
  */
 
 #include <wx/wx.h>
@@ -15,6 +15,10 @@
 myStyleSheet    sheet;
 
 
+/**
+ *
+ */
+ 
 wxString generate_table() {
     myTable     table(2, 2);
     wxString    sHTML;
@@ -37,6 +41,10 @@ wxString generate_table() {
     return sHTML;
 }
 
+/**
+ *
+ */
+ 
 bool page2_stub(serverPage* pPage, Request* pRequest)
 {
     D(debug("page2_stub(%p, %p)\n", pPage, pRequest));
@@ -194,6 +202,9 @@ const char* sz404Text = \
 "</CODE></PRE>\n"
 "</DIV></CENTER>\n";
 
+/**
+ *
+ */
 
 void add_404_page( muHTTPd* pServer) {
     serverPage* pNewPage;
@@ -215,6 +226,10 @@ void add_404_page( muHTTPd* pServer) {
     #include "image/html_debuggerfe_ico.h"
 #endif
 
+/**
+ *
+ */
+ 
 void add_all_images(muHTTPd* pServer) {
     /* Add all images here */
     add_image_page( pServer, wxT("/images/image.jpg"), wxT("image/jpeg"),
@@ -226,6 +241,10 @@ void add_all_images(muHTTPd* pServer) {
     return;
 }
 
+/**
+ *
+ */
+ 
 void init_style_sheet(myStyleSheet& sheet) {
     myStyleElement  elem;
 
@@ -246,6 +265,10 @@ void init_style_sheet(myStyleSheet& sheet) {
     return;
 }
 
+/**
+ *
+ */
+ 
 bool index_stub(serverPage* page, Request* pRequest)
 {
     HTML::HTMLOpts opts;
@@ -283,6 +306,10 @@ bool index_stub(serverPage* page, Request* pRequest)
     return true;
 }
 
+/**
+ *
+ */
+ 
 void add_javascript_page(muHTTPd* pServer) {
 
     serverPage*     page = 0;
@@ -297,6 +324,11 @@ void add_javascript_page(muHTTPd* pServer) {
     delete page;
 
 }
+
+/**
+ *
+ */
+ 
 void add_serverpages(muHTTPd* pServer)
 {
     serverPage*     page;
@@ -304,42 +336,6 @@ void add_serverpages(muHTTPd* pServer)
     D(debug("add_serverpages()\n"));
 
     init_style_sheet( sheet );
-
-#if 0
-    page = new serverPage(wxT("/index.html") /*, index_stub */);
-
-    page->SetFavIconName( wxT("images/favicon.ico") );
-    page->SetTitle( wxT("Index Page") );
-
-    *page += HTML::CENTER(HTML::HEADING1(wxT("Main Menu")));
-    *page += wxT("<div id=\"menu\">");
-    *page += wxT("<ul>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html")) + wxT("</li>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("</li>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("</li>");
-    *page += wxT("</ul>");
-    *page += wxT("</div>");
-
-    *page += HTML::IMAGE( wxT("images/image.jpg"), wxT("My Face"), 128, 128 );
-
-    /* Set cookies to expire in 5 minutes */
-    wxTimeSpan expireSpan = wxTimeSpan::Minutes( 5 );
-
-    page->AddCookie( wxT("ID"), wxT("muman613"), expireSpan );
-    page->AddCookie( wxT("FLAGS"), wxT("AEfnoYz"), expireSpan );
-
-    page->SetStyleSheet( sheet );
-
-    page->SaveToFile("/tmp/index.html");
-
-#ifdef  _DEBUG
-    page->Dump( stdout );
-#endif
-
-    pServer->AddPage( *page );
-
-    delete page;
-#endif
 
     page = new serverPage(wxT("/page1.html"));
 
