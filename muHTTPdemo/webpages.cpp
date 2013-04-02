@@ -45,7 +45,7 @@ wxString generate_table() {
  *
  */
  
-bool page2_stub(serverPage* pPage, Request* pRequest)
+bool page2_stub(serverPage* pPage, muRequest* pRequest)
 {
     D(debug("page2_stub(%p, %p)\n", pPage, pRequest));
 
@@ -76,7 +76,7 @@ bool page2_stub(serverPage* pPage, Request* pRequest)
  *  Generate the page on-the-fly...
  */
 
-bool page3_stub(serverPage* pPage, Request* pRequest)
+bool page3_stub(serverPage* pPage, muRequest* pRequest)
 {
     D(debug("index_stub(%p)\n", pPage));
 
@@ -119,7 +119,7 @@ bool add_image_page(muHTTPd* pServer, wxString pageName, wxString sMimeType,
  *
  */
 
-bool submit_stub(serverPage* pPage, Request* pRequest) {
+bool submit_stub(serverPage* pPage, muRequest* pRequest) {
     D(debug("submit_stub()\n"));
     wxString                sName,
                             sFilename,
@@ -269,7 +269,7 @@ void init_style_sheet(myStyleSheet& sheet) {
  *
  */
  
-bool index_stub(serverPage* page, Request* pRequest)
+bool index_stub(serverPage* page, muRequest* pRequest)
 {
     HTML::HTMLOpts opts;
 

@@ -19,11 +19,11 @@ class serverPage;
 class serverCatalog;
 class wxSocketBase;
 class HEADER_MAP;
-class Request;
+class muRequest;
 class wxFile;
 class muHTTPd;
 
-typedef bool (*PAGE_CALLBACK)(serverPage*, Request*);
+typedef bool (*PAGE_CALLBACK)(serverPage*, muRequest*);
 
 #define     ADD_PAGE(server, name, stub)                                        \
     {                                                                           \
@@ -234,7 +234,7 @@ protected:
     wxString        TEXT();
     wxString        JSCRIPT();                      ///< Generate Javascript page
 
-    void            Update(Request* pRequest = 0);  ///< Call callback function
+    void            Update(muRequest* pRequest = 0);///< Call callback function
                                                     ///<   to regenerate page.
 
     wxString        m_sPageName;
@@ -284,7 +284,7 @@ public:
     virtual ~serverCatalog();
 
     void            AddPage(serverPage& newPage);
-    serverPage*     GetPage(wxString sPageName, Request* pRequest);
+    serverPage*     GetPage(wxString sPageName, muRequest* pRequest);
     bool            PageExists(wxString sPageName);
 
     bool            GetPageArray(wxArrayString& sNameArray);

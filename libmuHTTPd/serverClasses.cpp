@@ -720,7 +720,7 @@ void serverPage::Clear() {
  *  Call the 'update' hook function.
  */
 
-void serverPage::Update(Request* pMap) {
+void serverPage::Update(muRequest* pMap) {
     D(debug("serverPage::Update()\n"));
 
     if (m_cbFunc != 0) {
@@ -1355,7 +1355,7 @@ void serverCatalog::AddPage(serverPage& newPage)
  *
  */
 
-serverPage* serverCatalog::GetPage(wxString sPageName, Request* pRequest)
+serverPage* serverCatalog::GetPage(wxString sPageName, muRequest* pRequest)
 {
     if (m_pages.find(sPageName) != m_pages.end()) {
         serverPage* pPage = &m_pages[sPageName];

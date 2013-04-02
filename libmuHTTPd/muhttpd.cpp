@@ -16,7 +16,7 @@
  *  Find a cookie by name.
  */
 
-wxString Request::FindCookie(wxString sName) {
+wxString muRequest::FindCookie(wxString sName) {
     wxString sResult = wxEmptyString;
 
     for (size_t x = 0 ; x < m_cookies.Count() ; x++) {
@@ -33,7 +33,7 @@ wxString Request::FindCookie(wxString sName) {
  *  Find a request header by name.
  */
 
-wxString Request::FindHeader(wxString sHeader) {
+wxString muRequest::FindHeader(wxString sHeader) {
     wxString sResult = wxEmptyString;
     HEADER_MAP::iterator it;
 
@@ -51,7 +51,7 @@ wxString Request::FindHeader(wxString sHeader) {
  *  Find a query value by name.
  */
 
-wxString Request::FindQuery(wxString sName) {
+wxString muRequest::FindQuery(wxString sName) {
     wxString sResult = wxEmptyString;
 
     for (size_t i = 0 ; i < m_queries.Count() ; i++) {
@@ -68,7 +68,7 @@ wxString Request::FindQuery(wxString sName) {
  *
  */
 
-const myAttachment* Request::FindAttach(wxString sName) {
+const myAttachment* muRequest::FindAttach(wxString sName) {
     D(debug("Request::FindAttach(%s)\n", sName.c_str()));
 
     for (size_t x = 0 ; x < m_attached.Count() ; x++) {
@@ -85,7 +85,7 @@ const myAttachment* Request::FindAttach(wxString sName) {
  *  Return the referring URL.
  */
 
-wxString Request::FindReferer()
+wxString muRequest::FindReferer()
 {
     return FindHeader( wxT("Referer") );
 }
@@ -94,7 +94,7 @@ wxString Request::FindReferer()
  *
  */
 
-wxString Request::FindUserAgent()
+wxString muRequest::FindUserAgent()
 {
     return FindHeader( wxT("User-Agent") );
 }
@@ -103,7 +103,7 @@ wxString Request::FindUserAgent()
  *
  */
 
-wxString Request::FindHost()
+wxString muRequest::FindHost()
 {
     return FindHeader( wxT("Host") );
 }
@@ -886,7 +886,7 @@ bool muHTTPd::AddPage(serverPage& page)
  *
  */
 
-serverPage* muHTTPd::GetPage(wxString sPageName, Request* pRequest)
+serverPage* muHTTPd::GetPage(wxString sPageName, muRequest* pRequest)
 {
     D(debug("muHTTPd::GetPage(%s)\n", sPageName.c_str()));
     return m_catalog.GetPage( sPageName, pRequest );

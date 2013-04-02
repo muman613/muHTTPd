@@ -27,7 +27,7 @@ WX_DECLARE_STRING_HASH_MAP( wxString, HEADER_MAP );
  *  Request class keeps the information about the request for the callback.
  */
 
-class Request {
+class muRequest {
 public:
     wxString            FindCookie(wxString sName);
     wxString            FindHeader(wxString sHeader);
@@ -85,7 +85,7 @@ private:
     wxString            m_host;
 
     muHTTPd*            m_pParent;
-    Request             m_Request;
+    muRequest           m_Request;
 };
 
 
@@ -104,7 +104,7 @@ class muHTTPd {
         bool            Stop();
 
         bool            AddPage(serverPage& page);
-        serverPage*     GetPage(wxString sPageName, Request* pRequest);
+        serverPage*     GetPage(wxString sPageName, muRequest* pRequest);
         bool            PageExists(wxString sPageName);
 
         void            Set404Page(serverPage& page);
