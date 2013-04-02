@@ -18,7 +18,7 @@ myStyleSheet    sheet;
 /**
  *
  */
- 
+
 wxString generate_table() {
     myTable     table(2, 2);
     wxString    sHTML;
@@ -44,9 +44,8 @@ wxString generate_table() {
 /**
  *
  */
- 
-bool page2_stub(serverPage* pPage, muRequest* pRequest)
-{
+
+bool page2_stub(serverPage* pPage, muRequest* pRequest) {
     D(debug("page2_stub(%p, %p)\n", pPage, pRequest));
 
     pPage->Clear();
@@ -76,12 +75,11 @@ bool page2_stub(serverPage* pPage, muRequest* pRequest)
  *  Generate the page on-the-fly...
  */
 
-bool page3_stub(serverPage* pPage, muRequest* pRequest)
-{
+bool page3_stub(serverPage* pPage, muRequest* pRequest) {
     D(debug("index_stub(%p)\n", pPage));
 
     pPage->Clear();
-    pPage->AddToHead("<style> a { font-size: 18pt; }</style>");
+    //pPage->AddToHead("<style> a { font-size: 18pt; }</style>");
 
     pPage->AddToBody(HTML::CENTER(HTML::HEADING1(wxT("Page 3"))));
 
@@ -92,7 +90,8 @@ bool page3_stub(serverPage* pPage, muRequest* pRequest)
     pPage->AddToBody( wxT("</table>\n") );
     pPage->AddToBody( wxT("  <input type=\"submit\" value=\"Send\">\n"));
     pPage->AddToBody( wxT("</form>\n") );
-
+    pPage->AddToBody( HTML::HR() );
+    pPage->AddToBody( HTML::LINK(wxT("Go Back To Home"), wxT("/index.html")) );
     return true;
 }
 
@@ -101,8 +100,7 @@ bool page3_stub(serverPage* pPage, muRequest* pRequest)
  */
 
 bool add_image_page(muHTTPd* pServer, wxString pageName, wxString sMimeType,
-                    void* pData, size_t length)
-{
+                    void* pData, size_t length) {
     serverPage*     page = new serverPage( pageName );
 
     page->SetImageData( pData, length );
@@ -122,8 +120,8 @@ bool add_image_page(muHTTPd* pServer, wxString pageName, wxString sMimeType,
 bool submit_stub(serverPage* pPage, muRequest* pRequest) {
     D(debug("submit_stub()\n"));
     wxString                sName,
-                            sFilename,
-                            sUploadType;
+    sFilename,
+    sUploadType;
 
     const myAttachment* pThisAttach = 0L;
 
@@ -134,7 +132,7 @@ bool submit_stub(serverPage* pPage, muRequest* pRequest) {
     if ((pThisAttach = pRequest->FindAttach( wxT("name_of_files") )) != 0) {
         sFilename = pThisAttach->fname();
         sUploadType = pThisAttach->type();
-        
+
         pThisAttach->write_file();
     }
 
@@ -177,30 +175,30 @@ bool submit_stub(serverPage* pPage, muRequest* pRequest) {
  */
 
 const char* sz404Text = \
-"<CENTER><DIV ALIGN=\"center\">\n"
-"<PRE><CODE>\n"
-" \n"
-" \n"
-" \n"
-" \n"
-"<TABLE BORDER=0 BGCOLOR=\"#C0C0C0\"><TR><TD><CODE><FONT COLOR=\"#330033\">ERR 404</FONT></CODE></TD></TR></TABLE>"
-" \n"
-" \n"
-"FFFFFF0 FFFFFFF FF00000 FF00000 0FFFFF0 FF000FF FF000FF\n"
-"FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
-"FFFFFF0 000F000 FF00000 FF00000 0FFF000 FF000FF 00FFF00\n"
-"FFFFFF0 000F000 FF00000 FF00000 000FFF0 FF000FF 00FFF00\n"
-"FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
-"FFFFFF0 FFFFFFF FFFFFFF FFFFFFF 0FFFFF0 0FFFFF0 FF000FF\n"
-" \n"
-" \n"
-"You have attempted to access a non-existent page.\n"
-"The current HTTP session will be terminated.\n"
-" \n"
-" \n"
-"Press any key to continue<BLINK>_</BLINK>\n"
-"</CODE></PRE>\n"
-"</DIV></CENTER>\n";
+                        "<CENTER><DIV ALIGN=\"center\">\n"
+                        "<PRE><CODE>\n"
+                        " \n"
+                        " \n"
+                        " \n"
+                        " \n"
+                        "<TABLE BORDER=0 BGCOLOR=\"#C0C0C0\"><TR><TD><CODE><FONT COLOR=\"#330033\">ERR 404</FONT></CODE></TD></TR></TABLE>"
+                        " \n"
+                        " \n"
+                        "FFFFFF0 FFFFFFF FF00000 FF00000 0FFFFF0 FF000FF FF000FF\n"
+                        "FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
+                        "FFFFFF0 000F000 FF00000 FF00000 0FFF000 FF000FF 00FFF00\n"
+                        "FFFFFF0 000F000 FF00000 FF00000 000FFF0 FF000FF 00FFF00\n"
+                        "FF000FF 000F000 FF00000 FF00000 FF000FF FF000FF 0FF0FF0\n"
+                        "FFFFFF0 FFFFFFF FFFFFFF FFFFFFF 0FFFFF0 0FFFFF0 FF000FF\n"
+                        " \n"
+                        " \n"
+                        "You have attempted to access a non-existent page.\n"
+                        "The current HTTP session will be terminated.\n"
+                        " \n"
+                        " \n"
+                        "Press any key to continue<BLINK>_</BLINK>\n"
+                        "</CODE></PRE>\n"
+                        "</DIV></CENTER>\n";
 
 /**
  *
@@ -222,14 +220,14 @@ void add_404_page( muHTTPd* pServer) {
 }
 
 #ifndef LOAD_FROM_FILE
-    #include "image/html_02_00_jpg.h"
-    #include "image/html_debuggerfe_ico.h"
+#include "image/html_02_00_jpg.h"
+#include "image/html_debuggerfe_ico.h"
 #endif
 
 /**
  *
  */
- 
+
 void add_all_images(muHTTPd* pServer) {
     /* Add all images here */
     add_image_page( pServer, wxT("/images/image.jpg"), wxT("image/jpeg"),
@@ -244,7 +242,7 @@ void add_all_images(muHTTPd* pServer) {
 /**
  *
  */
- 
+
 void init_style_sheet(myStyleSheet& sheet) {
     myStyleElement  elem;
 
@@ -268,9 +266,8 @@ void init_style_sheet(myStyleSheet& sheet) {
 /**
  *
  */
- 
-bool index_stub(serverPage* page, muRequest* pRequest)
-{
+
+bool index_stub(serverPage* page, muRequest* pRequest) {
     HTML::HTMLOpts opts;
 
     D(debug("index_stub()\n"));
@@ -287,8 +284,8 @@ bool index_stub(serverPage* page, muRequest* pRequest)
     *page += wxT("<div id=\"menu\">");
     *page += wxT("<ul>");
     *page += wxT("<li>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html"), &opts) + wxT("</li>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Display current results"), wxT("page2.html")) + wxT("</li>");
-    *page += wxT("<li>") + HTML::LINK(wxT("Display previous results"), wxT("page3.html")) + wxT("</li>");
+    *page += wxT("<li>") + HTML::LINK(wxT("Display cookies"), wxT("page2.html")) + wxT("</li>");
+    *page += wxT("<li>") + HTML::LINK(wxT("Upload an image to the server"), wxT("page3.html")) + wxT("</li>");
     *page += wxT("</ul>");
     *page += wxT("</div>");
 
@@ -309,7 +306,7 @@ bool index_stub(serverPage* page, muRequest* pRequest)
 /**
  *
  */
- 
+
 void add_javascript_page(muHTTPd* pServer) {
 
     serverPage*     page = 0;
@@ -328,9 +325,8 @@ void add_javascript_page(muHTTPd* pServer) {
 /**
  *
  */
- 
-void add_serverpages(muHTTPd* pServer)
-{
+
+void add_serverpages(muHTTPd* pServer) {
     serverPage*     page;
 
     D(debug("add_serverpages()\n"));

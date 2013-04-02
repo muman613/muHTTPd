@@ -25,8 +25,7 @@ IMPLEMENT_APP(muHTTPdemoApp)
  *  Signal handler for Control-C break.
  */
 
-void    signal_sigint_handler(int signum)
-{
+void    signal_sigint_handler(int signum) {
     D(debug("signal_sigint_handler(%d)\n", signum));
 
     bDone = true;
@@ -60,5 +59,5 @@ int muHTTPdemoApp::OnRun() {
 
     signal( SIGINT, SIG_DFL );
 
-	return 0L;
+    return 0L;
 }
