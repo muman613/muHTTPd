@@ -18,6 +18,7 @@ TODO
 * Complete CSS styles for pages.
 * Complete HTML table implementation.
 * Provide special classes for each page type.
+* Implement basic session system.
 
 ### ENVIRONMENT
 
