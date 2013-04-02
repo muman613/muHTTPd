@@ -7,7 +7,7 @@ CPP_SOURCES=muhtmlhelpers.cpp muhttpd.cpp mustylesheet.cpp \
 
 #	Tools
 
-WX_CONFIG=/opt/wxWidgets/2.8.12/bin/wx-config
+WX_CONFIG=wx-config
 GCC=gcc
 AR=ar
 
@@ -40,6 +40,10 @@ clean:	.PHONY
 
 $(OBJ_DIR): .PHONY
 	mkdir -p $(OBJ_DIR)
+
+depends: .PHONY
+	makedepend -Y -p'$$(OBJ_DIR)/' *.cpp
+
 	
 .PHONY:
 	@true
@@ -53,4 +57,3 @@ $(OBJ_DIR)/mutable.o: mutable.h dbgutils.h
 $(OBJ_DIR)/muutils.o: muutils.h dbgutils.h
 $(OBJ_DIR)/serverClasses.o: serverClasses.h mustylesheet.h muutils.h
 $(OBJ_DIR)/serverClasses.o: dbgutils.h
-
