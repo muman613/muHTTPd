@@ -10,6 +10,7 @@
 #include <wx/config.h>
 #include <stdio.h>
 #include <signal.h>
+#include "muHTTPdemoApp.h"
 #include "dbgutils.h"
 #include "serverClasses.h"
 #include "webpages.h"
@@ -17,6 +18,8 @@
 #include "mutable.h"
 
 bool bDone = false;
+
+IMPLEMENT_APP(muHTTPdemoApp)
 
 /**
  *  Signal handler for Control-C break.
@@ -36,11 +39,7 @@ void    signal_sigint_handler(int signum)
  *
  */
 
-int main() {
-    wxInitializer       wxInit;
-
-    wxSocketBase::Initialize();
-
+int muHTTPdemoApp::OnRun() {
     signal( SIGINT, signal_sigint_handler );
 
     muHTTPd         webServer(8080);
