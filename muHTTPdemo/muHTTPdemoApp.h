@@ -9,7 +9,7 @@
 
 class muHTTPdemoApp : public wxAppConsole {
 public:
-//	bool OnInit();
+	bool OnInit();
 	int OnRun();
 };
 

@@ -8,6 +8,7 @@
 #include <wx/wx.h>
 #include <wx/socket.h>
 #include <wx/config.h>
+#include <wx/filename.h>
 #include <stdio.h>
 #include <signal.h>
 #include "muHTTPdemoApp.h"
@@ -33,6 +34,21 @@ void    signal_sigint_handler(int signum) {
     return;
 }
 
+/**
+ *  Init function ensures that 'data-dir' exists in the current directory.
+ */
+
+bool muHTTPdemoApp::OnInit() {
+    wxString    sDataDir = wxT("data-dir");
+
+    if (!wxFileName::DirExists(sDataDir)) {
+        if (!wxFileName::Mkdir( sDataDir )) {
+            fprintf(stderr, "ERROR: Unable to create data-directory!\n");
+        }
+    }
+
+    return true;
+}
 
 /**
  *
