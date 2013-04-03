@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include "dbgutils.h"
-#include "mystylesheet.h"
+#include "mustylesheet.h"
 
 bool bDone = false;
 
