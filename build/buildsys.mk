@@ -2,6 +2,9 @@
 #	buildsys.mk
 ################################################################################
 
+CPP_OBJS=$(CPP_SOURCES:%.cpp=$(OBJ_DIR)/%.o)
+OBJS=$(CPP_OBJS)
+
 ifdef DEBUG
 	EXE_DIR=bin/Debug
 	OBJ_DIR=obj/Debug
@@ -15,19 +18,17 @@ endif
 TARGET=$(EXE_DIR)/$(TARGET_EXE)
 
 CFLAGS+=$(INCLUDES)
-LDFLAGS=$(LIBS) $(EXTERN_LIBS)
+LDFLAGS+=$(EXTERN_LIBS) $(LIBS)
 
-CPP_OBJS=$(CPP_SOURCES:%.cpp=$(OBJ_DIR)/%.o)
-OBJS=$(CPP_OBJS)
 
 #	Default rule
 $(OBJ_DIR)/%.o : %.cpp Makefile
 	@echo "Compiling $*.cpp"
-	$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
+	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
 
 $(TARGET): $(OBJ_DIR) $(EXE_DIR) $(OBJS) $(EXTERN_LIBS)
 	@echo "Linking $(TARGET)"
-	$(GCC) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	@$(GCC) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 clean:	.PHONY
 	rm -rf $(OBJS) $(TARGET)
