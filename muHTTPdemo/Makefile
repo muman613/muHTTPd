@@ -36,6 +36,9 @@ include ../build/buildsys.mk
 ../libmuHTTPd/libmuhttpd_debug.a: .PHONY
 	+@make DEBUG=1 -C ../libmuHTTPd
 
+cleanall: clean
+	@make -C ../libmuHTTPd clean
+
 # DO NOT DELETE
 
 $(OBJ_DIR)/main.o: muHTTPdemoApp.h ../libmuHTTPd/dbgutils.h
