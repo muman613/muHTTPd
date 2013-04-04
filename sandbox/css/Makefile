@@ -2,10 +2,11 @@
 #	Makefile
 ###############################################################################
 
-vpath %.cpp ../../libmuHTTPd
+#vpath %.cpp ../../libmuHTTPd
 
 CPP_SOURCES=main.cpp mustylesheet.cpp
 TARGET_EXE=css
+TARGET_TYPE=exe
 
 #	Tools
 
@@ -21,9 +22,9 @@ INCLUDES=-I ../../libmuHTTPd
 
 include ../../build/buildsys.mk
 
-$(OBJ_DIR)/mustylesheet.o: ../../libmuHTTPd/mustylesheet.cpp Makefile
+$(OBJ_DIR)/mustylesheet.o: ../../libmuHTTPd/mustylesheet.cpp
 	@echo "Compiling $<"
-	$(GCC) -c -o $*.o $(CFLAGS) $<
+	@$(GCC) -c -o $*.o $(CFLAGS) $<
 
 # DO NOT DELETE
 

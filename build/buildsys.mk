@@ -1,5 +1,7 @@
 ################################################################################
-#	buildsys.mk
+#	MODULE		:	buildsys.mk
+#	AUTHOR 		:	Michael A. Uman
+#	DATE		:	April 3, 2013
 ################################################################################
 
 CPP_OBJS=$(CPP_SOURCES:%.cpp=$(OBJ_DIR)/%.o)
@@ -15,7 +17,15 @@ else
 	CFLAGS+= -DNDEBUG -O2
 endif
 
+################################################################################
+#	Generate the targets full name
+################################################################################
+ifeq ($(TARGET_TYPE), exe)
 TARGET=$(EXE_DIR)/$(TARGET_EXE)
+endif
+ifeq ($(TARGET_TYPE), statlib)
+TARGET=$(LIBNAME).a
+endif
 
 CFLAGS+=$(INCLUDES)
 LDFLAGS+=$(EXTERN_LIBS) $(LIBS)
@@ -26,21 +36,38 @@ $(OBJ_DIR)/%.o : %.cpp Makefile
 	@echo "Compiling $*.cpp"
 	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
 
-$(TARGET): $(OBJ_DIR) $(EXE_DIR) $(OBJS) $(EXTERN_LIBS)
+################################################################################
+#	executable target
+################################################################################
+ifeq ($(TARGET_TYPE), exe)
+$(TARGET): objdir exedir $(OBJS) $(EXTERN_LIBS)
 	@echo "Linking $(TARGET)"
 	@$(GCC) -o $(TARGET) $(OBJS) $(LDFLAGS)
+endif
 
-clean:	.PHONY
+################################################################################
+#	static library target
+################################################################################
+ifeq ($(TARGET_TYPE), statlib)
+$(TARGET): objdir $(OBJS)
+	@echo "Generating static library $(TARGET)"
+	@$(AR) -r -s $(TARGET) $(OBJS)
+endif
+
+clean:
 	rm -rf $(OBJS) $(TARGET)
 
-$(OBJ_DIR) : .PHONY
-	mkdir -p $(OBJ_DIR)
+objdir: .PHONY
+	@echo "Creating object directory..."
+	@mkdir -p $(OBJ_DIR) 
 
-$(EXE_DIR): .PHONY
-	mkdir -p $(EXE_DIR)
+exedir: .PHONY	
+	@echo "Creating exe directory..."
+	@mkdir -p $(EXE_DIR)
 
-depends: .PHONY
+depends:
 	makedepend -Y  $(INCLUDES) -p'$$(OBJ_DIR)/' *.cpp
 
 .PHONY:
 	@true
+

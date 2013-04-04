@@ -11,42 +11,20 @@ WX_CONFIG=wx-config
 GCC=gcc
 AR=ar
 
+TARGET_TYPE=statlib
+
 ifdef DEBUG
-	TARGET=libmuhttpd_debug.a
-	CFLAGS+= -D_DEBUG=1 -g
+	LIBNAME=libmuhttpd_debug
 	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=yes)
-	OBJ_DIR=obj/Debug
 else
-	TARGET=libmuhttpd_release.a
+	LIBNAME=libmuhttpd_release
 	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=no)
-	OBJ_DIR=obj/Release
 endif
 
 CFLAGS+=$(WX_CFLAGS)
-CPP_OBJS=$(CPP_SOURCES:%.cpp=$(OBJ_DIR)/%.o)
-OBJS=$(CPP_OBJS)
 
-#	Default rule
-$(OBJ_DIR)/%.o : %.cpp Makefile
-	@echo "Compiling $<"
-	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
+include ../build/buildsys.mk
 
-$(TARGET): $(OBJ_DIR) $(OBJS)
-	@echo "Generating static library $(TARGET)"
-	@$(AR) -r -s $(TARGET) $(OBJS)
-
-clean:	.PHONY
-	rm -rf $(OBJS) $(TARGET)
-
-$(OBJ_DIR): .PHONY
-	mkdir -p $(OBJ_DIR)
-
-depends: .PHONY
-	makedepend -Y -p'$$(OBJ_DIR)/' *.cpp
-
-	
-.PHONY:
-	@true
 
 # DO NOT DELETE
 

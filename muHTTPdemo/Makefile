@@ -4,6 +4,7 @@
 
 CPP_SOURCES=main.cpp webpages.cpp
 TARGET_EXE=muHTTPdemo
+TARGET_TYPE=exe
 
 #	Tools
 
