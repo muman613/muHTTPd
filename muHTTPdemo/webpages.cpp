@@ -20,25 +20,48 @@ myStyleSheet    sheet;
  */
 
 wxString generate_table() {
-    myTable     table(2, 2);
+    myTable     table(4,2);
     wxString    sHTML;
 
     D(debug("generate_table()\n"));
 
-    table.set_border(2);
-    table.set_row_class(1, wxT("even"));
+    table.set_border(1);
+    table.set_caption( wxT("Information Matrix") );
+    //table.set_row_class(1, wxT("even"));
 
-    table.cell(0, 0) = myCell( wxT("Cell #1") );
-    table.cell(0, 1) = myCell( wxT("Cell #2") );
+    table.cell(0, 0) = myCell( wxT("Field") );
+    table.cell(0, 1) = myCell( wxT("Value") );
     table.cell(1, 0) = myCell( wxT("User name :") );
+    table.cell(1, 1) = myCell( wxT("Michael Uman") );
+    table.cell(2, 0) = myCell( wxT("Phone # :") );
+    table.cell(2, 1) = myCell( wxT("(XXX) XXX-XXXX") );
+    table.cell(3, 0) = myCell( wxT("User ID :") );
+    table.cell(3, 1) = myCell( wxT("muman613") );
     //table.dump();
-    table.cell(0,0).Class( wxT("special") );
+    //table.cell(0,0).Class( wxT("special") );
 
     sHTML = table.HTML();
 
-    printf("%s", sHTML.c_str());
+    //printf("%s", sHTML.c_str());
 
     return sHTML;
+}
+
+bool table_stub(serverPage* pPage, muRequest* pRequest) {
+    wxString    sHTML = generate_table();
+
+    pPage->Clear();
+
+    pPage->SetTitle( wxT("Test Table Class") );
+    pPage->AddToBody(HTML::CENTER(HTML::HEADING1(wxT("Test Table Class"))));
+    *pPage += sHTML;
+
+    *pPage += HTML::HR() ;
+    *pPage += HTML::LINK(wxT("Go Back To Home"), wxT("/index.html"));
+
+    pPage->SetStyleSheet( sheet );
+
+    return true;
 }
 
 /**
@@ -286,6 +309,7 @@ bool index_stub(serverPage* page, muRequest* pRequest) {
     *page += wxT("<li>") + HTML::LINK(wxT("Stop running test"), wxT("page1.html"), &opts) + wxT("</li>");
     *page += wxT("<li>") + HTML::LINK(wxT("Display cookies"), wxT("page2.html")) + wxT("</li>");
     *page += wxT("<li>") + HTML::LINK(wxT("Upload an image to the server"), wxT("page3.html")) + wxT("</li>");
+    *page += wxT("<li>") + HTML::LINK(wxT("Test Table class"), wxT("table-test.html")) + wxT("</li>");
     *page += wxT("</ul>");
     *page += wxT("</div>");
 
@@ -349,11 +373,11 @@ void add_serverpages(muHTTPd* pServer) {
 
     delete page;
 
-    ADD_PAGE( pServer, wxT("/index.html"), index_stub);
-    ADD_PAGE( pServer, wxT("/page2.html"), page2_stub);
-    ADD_PAGE( pServer, wxT("/page3.html"), page3_stub);
-    ADD_PAGE( pServer, wxT("/submit.cgi"), submit_stub)
-
+    ADD_PAGE( pServer, wxT("/index.html"),      index_stub);
+    ADD_PAGE( pServer, wxT("/page2.html"),      page2_stub);
+    ADD_PAGE( pServer, wxT("/page3.html"),      page3_stub);
+    ADD_PAGE( pServer, wxT("/submit.cgi"),      submit_stub)
+    ADD_PAGE( pServer, wxT("/table-test.html"), table_stub);
 
     add_all_images( pServer );
 

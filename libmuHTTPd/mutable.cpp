@@ -14,7 +14,7 @@ myTable::myTable(int rows, int cols)
     //ctor
     D(debug("myTable::myTable(%d, %d)\n", rows, cols));
 
-    m_cells = new myCell[rows * cols];
+    m_cells = new  myCell[rows * cols];
     m_rowClass = new wxString[rows];
 
 }
@@ -31,6 +31,11 @@ myTable::~myTable()
     delete [] m_rowClass;
 }
 
+void myTable::set_caption(wxString sCaption) {
+    m_caption = sCaption;
+    return;
+}
+
 void myTable::set_border(int border)
 {
     m_border = border;
@@ -38,7 +43,7 @@ void myTable::set_border(int border)
 
 myCell& myTable::cell(int row, int col)
 {
-    return m_cells[(row * m_rows) + col];
+    return m_cells[(row * m_cols) + col];
 }
 
 /**
@@ -53,6 +58,10 @@ wxString myTable::HTML()
         sHTML += wxT("<table border=\"") + wxString::Format(wxT("%d"), m_border) + wxT("\">\n");
     } else {
         sHTML += wxT("<table>\n");
+    }
+
+    if (!m_caption.IsEmpty()) {
+        sHTML += wxT("<caption>") + m_caption + wxT("</caption>\n");
     }
 
     for (int row = 0 ; row < m_rows ; row++) {

@@ -45,6 +45,8 @@ class myTable
 
         wxString    HTML();
 
+        void        set_caption(wxString sCaption);
+
         void        set_row_class(int row, wxString sClass);
 
         void        set_border(int border);
@@ -58,6 +60,7 @@ class myTable
         int         m_border;
         myCell*     m_cells;
         wxString*   m_rowClass;
+        wxString    m_caption;
     private:
 };
 
