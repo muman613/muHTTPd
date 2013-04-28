@@ -7,20 +7,15 @@ TARGET_EXE=muHTTPdemo
 TARGET_TYPE=exe
 
 #	Tools
-
-WX_CONFIG=wx-config
-GCC=g++
-LIBS=
+include ../build/tools_env.mk
 
 ifdef DEBUG
-	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=yes)
-	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs --unicode=no --debug=yes)
-	EXTERN_LIBS+=../libmuHTTPd/libmuhttpd_debug.a
+EXTERN_LIBS+=../libmuHTTPd/libmuhttpd_debug.a
 else
-	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=no)
-	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs --unicode=no --debug=no)
-	EXTERN_LIBS+=../libmuHTTPd/libmuhttpd_release.a
+EXTERN_LIBS+=../libmuHTTPd/libmuhttpd_release.a
 endif
+
+include ../build/wxwidgets_env.mk
 
 INCLUDES=-I ../libmuHTTPd/
 CFLAGS+=$(WX_CFLAGS) 

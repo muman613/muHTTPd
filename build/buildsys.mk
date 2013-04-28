@@ -1,11 +1,17 @@
 ################################################################################
 #	MODULE		:	buildsys.mk
 #	AUTHOR 		:	Michael A. Uman
-#	DATE		:	April 3, 2013
+#	DATE		:	April 10, 2013
+#	LAST MOD	:	April 22, 2013
 ################################################################################
 
 CPP_OBJS=$(CPP_SOURCES:%.cpp=$(OBJ_DIR)/%.o)
-OBJS=$(CPP_OBJS)
+C_OBJS=$(C_SOURCES:%.c=$(OBJ_DIR)/%.o)
+
+OBJS=$(CPP_OBJS) $(C_OBJS)
+
+GPP ?= g++
+GCC ?= gcc
 
 ifdef DEBUG
 	EXE_DIR=bin/Debug
@@ -27,29 +33,33 @@ ifeq ($(TARGET_TYPE), statlib)
 TARGET=$(LIBNAME).a
 endif
 
-CFLAGS+=$(INCLUDES)
+CFLAGS+=$(INCLUDES) $(DEFINES)
 LDFLAGS+=$(EXTERN_LIBS) $(LIBS)
 
 
-#	Default rule
+#	Default rules
 $(OBJ_DIR)/%.o : %.cpp Makefile
 	@echo "Compiling $*.cpp"
-	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
+	@$(GPP) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.cpp
 
+$(OBJ_DIR)/%.o : %.c Makefile
+	@echo "Compiling $*.c"
+	@$(GCC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $*.c
+	
 ################################################################################
 #	executable target
 ################################################################################
 ifeq ($(TARGET_TYPE), exe)
-$(TARGET): objdir exedir $(OBJS) $(EXTERN_LIBS)
+$(TARGET): $(OBJ_DIR) $(EXE_DIR) $(OBJS) $(EXTERN_LIBS)
 	@echo "Linking $(TARGET)"
-	@$(GCC) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	@$(GPP) -o $(TARGET) $(OBJS) $(LDFLAGS)
 endif
 
 ################################################################################
 #	static library target
 ################################################################################
 ifeq ($(TARGET_TYPE), statlib)
-$(TARGET): objdir $(OBJS)
+$(TARGET): $(OBJ_DIR) $(OBJS)
 	@echo "Generating static library $(TARGET)"
 	@$(AR) -r -s $(TARGET) $(OBJS)
 endif
@@ -57,11 +67,11 @@ endif
 clean:
 	rm -rf $(OBJS) $(TARGET)
 
-objdir: .PHONY
+$(OBJ_DIR):
 	@echo "Creating object directory..."
 	@mkdir -p $(OBJ_DIR) 
 
-exedir: .PHONY	
+$(EXE_DIR):
 	@echo "Creating exe directory..."
 	@mkdir -p $(EXE_DIR)
 
