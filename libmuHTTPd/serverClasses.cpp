@@ -59,23 +59,23 @@ myAttachment::myAttachment(wxString sData)
     wxStringTokenizer       partToke( sData, wxT("\n"));
 
     while ((sHeader = partToke.GetNextToken()) != wxT("\r")) {
-        ////D(debug("-- header %s\n", sHeader.c_str()));
+        D(debug(wxT("-- header %s\n"), static_cast<const char *>(sHeader)));
 
         sHeadArray.Add( sHeader );
 
         wxStringTokenizer hdrToke( sHeader, wxT(":") );
 
         sTmp = hdrToke.GetNextToken();
-        ////D(debug("-- sTMP %s\n", sTmp.c_str()));
+        D(debug(wxT("-- sTMP %s\n"), static_cast<const char *>(sTmp)));
 
         if (sTmp.CmpNoCase(wxT("content-disposition")) == 0) {
             wxString sFields = hdrToke.GetNextToken();
-            ////D(debug("-- found content disposition!\n"));
+            D(debug(wxT("-- found content disposition!\n")));
 
             sFields.Trim(true);
             sFields.Trim(false);
 
-            ////D(debug("fields = [%s]\n", sFields.c_str()));
+            D(debug(wxT("fields = [%s]\n"), static_cast<const char *>(sFields)));
 
             wxStringTokenizer attributes( sFields, wxT(";") );
 
@@ -83,7 +83,7 @@ myAttachment::myAttachment(wxString sData)
             sTmp2.Trim(true);
             sTmp2.Trim(false);
 
-//            //D(debug("sTmp2 = [%s]\n", sTmp2.c_str()));
+           D(debug(wxT("sTmp2 = [%s]\n"), static_cast<const char *>(sTmp2)));
 
             if (sTmp2.CmpNoCase(wxT("form-data")) == 0) {
                 while (attributes.HasMoreTokens()) {
@@ -1293,26 +1293,26 @@ void serverPage::Dump(FILE* fOut)
 
     fprintf(fOut,"---------------------------------------------------------\n");
 
-    fprintf(fOut, "Page name      : %s\n", m_sPageName.c_str());
-    fprintf(fOut, "Page title     : %s\n", m_sPageTitle.c_str());
-    fprintf(fOut, "MIME type      : %s\n", m_sMimeType.c_str());
+    fprintf(fOut, "Page name      : %s\n", static_cast<const char *>(m_sPageName));
+    fprintf(fOut, "Page title     : %s\n", static_cast<const char *>(m_sPageTitle));
+    fprintf(fOut, "MIME type      : %s\n", static_cast<const char *>(m_sMimeType));
     fprintf(fOut, "Content Length : %ld\n", m_size);
 
     if (!m_sRedirect.IsEmpty()) {
-        fprintf(fOut, "Redirect URL   : %s\n", m_sRedirect.c_str());
+        fprintf(fOut, "Redirect URL   : %s\n", static_cast<const char *>(m_sRedirect));
         fprintf(fOut, "Redirect Time  : %d Seconds\n", m_nRedirectTime);
     } else if (m_nRedirectTime > 0) {
         fprintf(fOut, "Refresh Time   : %d Seconds\n", m_nRedirectTime);
     }
 
     if (m_bEnableCaching) {
-        fprintf(fOut, "Caching         : Enabled expires @ %s\n", m_sCacheExpires.c_str());
+        fprintf(fOut, "Caching         : Enabled expires @ %s\n", static_cast<const char *>(m_sCacheExpires));
     } else {
         fprintf(fOut, "Caching         : Disabled\n");
     }
 
     fprintf(fOut, "\n");
-    fprintf(fOut, "%s\n", sHTML.c_str());
+    fprintf(fOut, "%s\n", static_cast<const char *>(sHTML));
 
     fprintf(fOut,"---------------------------------------------------------\n");
     return;
