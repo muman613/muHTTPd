@@ -47,7 +47,7 @@ myAttachment::myAttachment(wxString sData)
 #ifdef  ENABLE_FORM_DUMP
     /* Dump the file to temporary file */
     if (!(sTmpFile = wxFileName::CreateTempFileName(wxT("att"), &m_tmpFile)).IsEmpty()) {
-        D(debug("Created temporary file %s\n", sTmpFile.c_str()));
+        //D(debug("Created temporary file %s\n", sTmpFile.c_str()));
 
         if (m_tmpFile.IsOpened()) {
             m_tmpFile.Write( sData.GetData(), sData.Length() );
@@ -59,23 +59,23 @@ myAttachment::myAttachment(wxString sData)
     wxStringTokenizer       partToke( sData, wxT("\n"));
 
     while ((sHeader = partToke.GetNextToken()) != wxT("\r")) {
-        //D(debug("-- header %s\n", sHeader.c_str()));
+        ////D(debug("-- header %s\n", sHeader.c_str()));
 
         sHeadArray.Add( sHeader );
 
         wxStringTokenizer hdrToke( sHeader, wxT(":") );
 
         sTmp = hdrToke.GetNextToken();
-        //D(debug("-- sTMP %s\n", sTmp.c_str()));
+        ////D(debug("-- sTMP %s\n", sTmp.c_str()));
 
         if (sTmp.CmpNoCase(wxT("content-disposition")) == 0) {
             wxString sFields = hdrToke.GetNextToken();
-            //D(debug("-- found content disposition!\n"));
+            ////D(debug("-- found content disposition!\n"));
 
             sFields.Trim(true);
             sFields.Trim(false);
 
-            //D(debug("fields = [%s]\n", sFields.c_str()));
+            ////D(debug("fields = [%s]\n", sFields.c_str()));
 
             wxStringTokenizer attributes( sFields, wxT(";") );
 
@@ -83,21 +83,21 @@ myAttachment::myAttachment(wxString sData)
             sTmp2.Trim(true);
             sTmp2.Trim(false);
 
-//            D(debug("sTmp2 = [%s]\n", sTmp2.c_str()));
+//            //D(debug("sTmp2 = [%s]\n", sTmp2.c_str()));
 
             if (sTmp2.CmpNoCase(wxT("form-data")) == 0) {
                 while (attributes.HasMoreTokens()) {
                     wxString sAttName, sAttValue;
                     wxString subAttr = attributes.GetNextToken().Trim(false).Trim();
 
-                    //D(debug("---- sub attribute = %s\n", subAttr.c_str()));
+                    ////D(debug("---- sub attribute = %s\n", subAttr.c_str()));
 
                     wxStringTokenizer subToke( subAttr, wxT("=") );
 
                     sAttName = subToke.GetNextToken().Trim(false).Trim();
                     sAttValue = subToke.GetNextToken().Trim(false).Trim();
 
-                    D(debug("Attribute name [%s] value [%s]\n", sAttName.c_str(), sAttValue.c_str()));
+                    //D(debug("Attribute name [%s] value [%s]\n", sAttName.c_str(), sAttValue.c_str()));
 
                     if (sAttName.CmpNoCase(wxT("name")) == 0) {
                         m_sName = sAttValue;
@@ -112,13 +112,13 @@ myAttachment::myAttachment(wxString sData)
             }
         } else if (sTmp.CmpNoCase(wxT("content-type"))  == 0) {
             m_sContentType = hdrToke.GetNextToken().Trim(false).Trim();
-            D(debug("-- Found content type of %s\n", m_sContentType.c_str()));
+            //D(debug("-- Found content type of %s\n", m_sContentType.c_str()));
         }
 
     }
     lastOffset = partToke.GetPosition();
 
-    //D(debug("-- last offset @ %ld\n", lastOffset));
+    ////D(debug("-- last offset @ %ld\n", lastOffset));
 
     sData = sData.Mid( lastOffset );
 
@@ -178,10 +178,10 @@ bool myAttachment::write_file() const {
 bool myAttachment::delete_file() const {
     bool bRes = false;
 
-    D(debug("myAttachment::delete_file()\n"));
+    //D(debug("myAttachment::delete_file()\n"));
 
     if (wxFileName::FileExists( m_sFilename )) {
-        D(debug("-- removing file %s!\n", m_sFilename.c_str()));
+        //D(debug("-- removing file %s!\n", m_sFilename.c_str()));
         ::wxRemoveFile( m_sFilename );
         bRes = true;
 	}
@@ -334,7 +334,7 @@ serverPage::serverPage(const serverPage& copy)
     /* deep copy the binary data if it exists */
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
-//      D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
+//      //D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
         memcpy(m_pBinaryData, copy.m_pBinaryData, copy.m_nBinaryDataSize);
         m_nBinaryDataSize = copy.m_nBinaryDataSize;
     } else {
@@ -396,11 +396,11 @@ serverPage::serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc
             wxFileName  sFileName(sPageName);
             wxString    sType = sFileName.GetExt();
 
-            D(debug("-- looking for mime type for extension [%s]\n", sType.c_str()));
+            //D(debug("-- looking for mime type for extension [%s]\n", sType.c_str()));
 
             m_sMimeType = GetMimeFromExtenstion( sType );
 
-            D(debug("-- mime type is [%s]\n", m_sMimeType.c_str()));
+            //D(debug("-- mime type is [%s]\n", m_sMimeType.c_str()));
         }
         break;
     case PAGE_TEXT:
@@ -416,7 +416,7 @@ serverPage::serverPage(wxString sPageName, PAGE_TYPE type, PAGE_CALLBACK pCBFunc
 serverPage::~serverPage()
 {
     // dtor
-//  D(debug("destructing %s page %s\n", (m_type == PAGE_HTML)?"HTML":"IMAGE", m_sPageName.c_str()));
+//  //D(debug("destructing %s page %s\n", (m_type == PAGE_HTML)?"HTML":"IMAGE", m_sPageName.c_str()));
     Clear();
 }
 
@@ -425,7 +425,7 @@ serverPage::~serverPage()
  */
 
 serverPage&     serverPage::operator = (const serverPage& copy) {
-//  D(debug("serverPage::operator =(...)\n"));
+//  //D(debug("serverPage::operator =(...)\n"));
 
     m_sPageName         = copy.m_sPageName;
     m_sMimeType         = copy.m_sMimeType;
@@ -449,7 +449,7 @@ serverPage&     serverPage::operator = (const serverPage& copy) {
 
     if (copy.m_pBinaryData != 0) {
         m_pBinaryData = (void *)malloc( copy.m_nBinaryDataSize );
-        D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
+        //D(debug("-- copying binary data from %p to %p!!!\n", copy.m_pBinaryData, m_pBinaryData));
         memcpy(m_pBinaryData, copy.m_pBinaryData, copy.m_nBinaryDataSize);
         m_nBinaryDataSize = copy.m_nBinaryDataSize;
     } else {
@@ -478,7 +478,7 @@ bool serverPage::LoadFromFile(wxString sFilename)
     bool            bRes = false;
     wxTextFile      textFile;
 
-    D(debug("serverPage::LoadFromFile(%s)\n", sFilename.c_str()));
+    //D(debug("serverPage::LoadFromFile(%s)\n", sFilename.c_str()));
 
     if (textFile.Open( sFilename )) {
 
@@ -507,7 +507,7 @@ bool serverPage::SaveToFile(wxString sFilename)
     wxFile      textFile;
     wxString    sFileText;
 
-    D(debug("serverPage::SaveToFile(%s)\n", sFilename.c_str()));
+    //D(debug("serverPage::SaveToFile(%s)\n", sFilename.c_str()));
 
     if (m_type == PAGE_HTML) {
         sFileText = HTML();
@@ -526,15 +526,15 @@ bool serverPage::SaveToFile(wxString sFilename)
     }
 
     sFullPath = fname.GetFullPath();
-    D(debug("-- saving to file %s\n", sFullPath.c_str()));
+    //D(debug("-- saving to file %s\n", sFullPath.c_str()));
 
         if (!textFile.Create( sFullPath.c_str(), true )) {
-            fprintf(stderr, "ERROR: Unable to open output file %s!\n", sFullPath.c_str());
+            fprintf(stderr, "ERROR: Unable to open output file %s!\n", static_cast<const char *>(sFullPath));
             return false;
         }
 
     } else {
-        D(debug("-- sending output to standard out!\n"));
+        //D(debug("-- sending output to standard out!\n"));
 
         textFile.Attach(wxFile::fd_stdout);
     }
@@ -635,7 +635,7 @@ serverPage&     serverPage::operator +=(wxString sLine) {
 
 void serverPage::SetTitle(wxString sTitle)
 {
-    D(debug("serverPage::SetTitle(%s)\n", sTitle.c_str()));
+    //D(debug("serverPage::SetTitle(%s)\n", sTitle.c_str()));
     m_sPageTitle = sTitle;
 }
 
@@ -644,7 +644,7 @@ void serverPage::SetTitle(wxString sTitle)
  */
 
 wxString serverPage::GetTitle() {
-    D(debug("serverPage::GetTitle()\n"));
+    //D(debug("serverPage::GetTitle()\n"));
     return m_sPageTitle;
 }
 
@@ -654,7 +654,7 @@ wxString serverPage::GetTitle() {
 
 void serverPage::SetMimeType(wxString sMimeType)
 {
-    D(debug("serverPage::SetMimeType(%s)\n", sMimeType.c_str()));
+    //D(debug("serverPage::SetMimeType(%s)\n", sMimeType.c_str()));
     m_sMimeType = sMimeType;
 }
 
@@ -663,7 +663,7 @@ void serverPage::SetMimeType(wxString sMimeType)
  */
 
 wxString serverPage::GetMimeType() {
-    D(debug("serverPage::GetMimeType()\n"));
+    //D(debug("serverPage::GetMimeType()\n"));
     return m_sMimeType;
 }
 
@@ -673,7 +673,7 @@ wxString serverPage::GetMimeType() {
 
 void  serverPage::SetRedirectTo(wxString sRedirect, int nSec)
 {
-    D(debug("serverPage::SetRedirectTo(%s, %d)\n", sRedirect.c_str(), nSec));
+    //D(debug("serverPage::SetRedirectTo(%s, %d)\n", sRedirect.c_str(), nSec));
 
     m_sRedirect     = sRedirect;
     m_nRedirectTime = nSec;
@@ -696,7 +696,7 @@ void serverPage::SetRefreshTime(int nSec) {
  */
 
 void serverPage::Clear() {
-//  D(debug("serverPage::Clear()\n"));
+//  //D(debug("serverPage::Clear()\n"));
 
     m_sHeadText.Clear();
     m_sJScriptText.Clear();
@@ -709,7 +709,7 @@ void serverPage::Clear() {
     m_type          = PAGE_HTML;
 
     if (m_pBinaryData != 0) {
-//      D(debug("-- freeing binary data from page %s\n", m_sPageName.c_str()));
+//      //D(debug("-- freeing binary data from page %s\n", m_sPageName.c_str()));
         free(m_pBinaryData);
         m_pBinaryData       = 0L;
         m_nBinaryDataSize   = 0L;
@@ -721,10 +721,10 @@ void serverPage::Clear() {
  */
 
 void serverPage::Update(muRequest* pMap) {
-    D(debug("serverPage::Update()\n"));
+    //D(debug("serverPage::Update()\n"));
 
     if (m_cbFunc != 0) {
-        D(debug("-- calling call-back function!\n"));
+        //D(debug("-- calling call-back function!\n"));
         (*m_cbFunc)(this, pMap);
     }
 
@@ -746,7 +746,7 @@ PAGE_CALLBACK serverPage::GetCallback()
 
 void serverPage::SetCallback(PAGE_CALLBACK cbFunc)
 {
-    D(debug("serverPage::SetCallback(%p)\n", cbFunc));
+    //D(debug("serverPage::SetCallback(%p)\n", cbFunc));
     m_cbFunc = cbFunc;
 }
 
@@ -761,7 +761,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
     wxString    sHTTP;
     wxString    sPageText;
 
-    D(debug("serverPage::Send(%p)\n", pSocket));
+    //D(debug("serverPage::Send(%p)\n", pSocket));
 
 #ifdef  ENABLE_DEBUG_SEND
     FILE* fOut = fopen("/tmp/http.txt", "w");
@@ -805,7 +805,7 @@ bool serverPage::Send(wxSocketBase* pSocket)
 
     /* Add cookies to header */
     if (!m_cookies.IsEmpty()) {
-        D(debug("-- adding cookies to header!\n"));
+        //D(debug("-- adding cookies to header!\n"));
         for (size_t x = 0 ; x < m_cookies.Count() ; x++) {
             sHTTP += m_cookies[x].header() + sHTMLEol;
         }
@@ -847,14 +847,14 @@ bool serverPage::Send(wxSocketBase* pSocket)
 
 wxString serverPage::CSS() {
     wxString sCSS;
-    D(debug("serverPage::CSS()\n"));
+    //D(debug("serverPage::CSS()\n"));
 
     if (!m_cssStyleSheet.IsEmpty()) {
         wxArrayString cssText;
 
         m_cssStyleSheet.GetCSS( cssText );
 
-        D(debug("-- generating CSS section!\n"));
+        //D(debug("-- generating CSS section!\n"));
 
         for (size_t i = 0 ; i < cssText.Count() ; i++) {
             sCSS += wxT("\t\t") + cssText[i] + sHTMLEol;
@@ -871,7 +871,7 @@ wxString serverPage::CSS() {
 
 wxString serverPage::JSCRIPT() {
     wxString sJScript;
-    D(debug("serverPage::JSCRIPT()\n"));
+    //D(debug("serverPage::JSCRIPT()\n"));
 
     for (size_t x = 0 ; x < m_sJScriptText.Count() ; x++) {
         sJScript += m_sJScriptText[x] + sHTMLEol;
@@ -948,7 +948,7 @@ wxString serverPage::HTML() {
 
         m_cssStyleSheet.GetCSS( cssText );
 
-        D(debug("-- generating CSS section!\n"));
+        //D(debug("-- generating CSS section!\n"));
         sHTMLText += wxT("\t<style type=\"text/css\">") + sHTMLEol;
 
         for (size_t i = 0 ; i < cssText.Count() ; i++) {
@@ -992,24 +992,24 @@ bool serverPage::SetImageFile(wxString sFilename) {
     wxFileType* pType;
     wxFile      pFile;
 
-    D(debug("serverPage::SetImageFile(%s)\n", sFilename.c_str()));
+    //D(debug("serverPage::SetImageFile(%s)\n", sFilename.c_str()));
 
     if (fname.FileExists()) {
 
         pType = wxTheMimeTypesManager->GetFileTypeFromExtension(fname.GetExt());
 
         if (pType->GetMimeType(&sContentType)) {
-            D(debug("Mime type reported = %s\n", sContentType.c_str()));
+            //D(debug("Mime type reported = %s\n", sContentType.c_str()));
             m_sMimeType = sContentType;
 
         if (pFile.Open( sFilename )) {
             size_t fileSize = pFile.Length();
 
             m_pBinaryData = (void*)malloc( fileSize );
-            D(debug("-- binary data @ %p\n", m_pBinaryData));
+            //D(debug("-- binary data @ %p\n", m_pBinaryData));
             pFile.Read( m_pBinaryData, fileSize );
             m_size = m_nBinaryDataSize = fileSize;
-            D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
+            //D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
             pFile.Close();
 
             m_type = PAGE_BINARY;
@@ -1028,7 +1028,7 @@ bool serverPage::SetImageFile(wxString sFilename) {
  */
 
 bool serverPage::SetImageData(void* pData, size_t length) {
-    D(debug("serverPage::SetImageData(%p, %ld)\n", pData, length));
+    //D(debug("serverPage::SetImageData(%p, %ld)\n", pData, length));
 
     /* if image data already exists, free it... */
     if (m_pBinaryData != 0) {
@@ -1052,8 +1052,8 @@ bool serverPage::SetImageData(void* pData, size_t length) {
  */
 
 bool serverPage::SetBinaryPage(wxString sMimeType, void* pData, size_t length) {
-    D(debug("serverPage::SetBinaryPage(%s, %p, %ld)\n",
-            sMimeType.c_str(), pData, length));
+    //D(debug("serverPage::SetBinaryPage(%s, %p, %ld)\n",
+//            sMimeType.c_str(), pData, length));
 
     /* if image data already exists, free it... */
     if (m_pBinaryData != 0) {
@@ -1079,7 +1079,7 @@ bool serverPage::SetTextFile(wxString sMimeType, wxString sFilename) {
     wxFileName  fname(sFilename);
     wxTextFile  pFile;
 
-    D(debug("serverPage::SetTextFile(%s, %s)\n", sMimeType.c_str(), sFilename.c_str()));
+    //D(debug("serverPage::SetTextFile(%s, %s)\n", sMimeType.c_str(), sFilename.c_str()));
 
     if (fname.FileExists()) {
         m_sMimeType = sMimeType;
@@ -1094,10 +1094,10 @@ bool serverPage::SetTextFile(wxString sMimeType, wxString sFilename) {
             size_t fileSize = pFile.Length();
 
             m_pBinaryData = (void*)malloc( fileSize );
-            D(debug("-- binary data @ %p\n", m_pBinaryData));
+            //D(debug("-- binary data @ %p\n", m_pBinaryData));
             pFile.Read( m_pBinaryData, fileSize );
             m_size = m_nBinaryDataSize = fileSize;
-            D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
+            //D(debug("-- read %ld bytes from file %s\n", fileSize, sFilename.c_str()));
             pFile.Close();
 #endif
 
@@ -1117,7 +1117,7 @@ bool serverPage::AddCookie(wxString sName, wxString sValue, wxString sExpireDate
 {
     myCookie    newCookie(sName, sValue, sExpireDate, sPath, sDomain, bSecure);
 
-    D(debug("serverPage::AddCookie()\n"));
+    //D(debug("serverPage::AddCookie()\n"));
 
     m_cookies.Add(newCookie);
 
@@ -1135,12 +1135,12 @@ bool serverPage::AddCookie(wxString sName, wxString sValue, wxTimeSpan& tSpan,
     wxDateTime  expire,
                 now = wxDateTime::Now();
 
-    D(debug("serverPage::AddCookie(bytimespan)\n"));
+    //D(debug("serverPage::AddCookie(bytimespan)\n"));
 
     expire = now + tSpan;
     sExpireDate = expire.Format( wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
 
-    D(debug("-- expire date is %s\n", sExpireDate.c_str()));
+    //D(debug("-- expire date is %s\n", sExpireDate.c_str()));
 
     AddCookie(sName, sValue, sExpireDate, sPath, sDomain, bSecure);
 
@@ -1181,7 +1181,7 @@ void serverPage::BodyFromString(const char* szBodyData)
     wxStringTokenizer bodyToken( sBodyData, wxT("\n") );
     wxString sTmp;
 
-    D(debug("serverPage::BodyFromString()\n"));
+    //D(debug("serverPage::BodyFromString()\n"));
 
     sTmp = bodyToken.GetNextToken();
     if (!sTmp.IsEmpty()) {
@@ -1199,7 +1199,7 @@ void serverPage::BodyFromString(const char* szBodyData)
 void serverPage::SetBodyText(const wxChar** bodyText) {
     size_t index = 0;
 
-    D(debug("serverPage::SetBodyText(%p)\n", bodyText));
+    //D(debug("serverPage::SetBodyText(%p)\n", bodyText));
 
 
     while (bodyText[index] != 0) {
@@ -1212,7 +1212,7 @@ void serverPage::SetBodyText(const wxChar** bodyText) {
 
 
 void serverPage::SetStyleSheet(const myStyleSheet& cssStyle) {
-    D(debug("serverPage::SetStyleSheet()\n"));
+    //D(debug("serverPage::SetStyleSheet()\n"));
 
     m_cssStyleSheet = cssStyle;
 }
@@ -1235,7 +1235,7 @@ myStyleSheet&   serverPage::StyleSheet() {
  */
 
 void serverPage::EnableCaching(wxDateTime expire_date) {
-    D(debug("serverPage::EnableCaching(%s)\n", expire_date.Format(wxDefaultDateTimeFormat).c_str()));
+    //D(debug("serverPage::EnableCaching(%s)\n", expire_date.Format(wxDefaultDateTimeFormat).c_str()));
 
     m_bEnableCaching    = true;
     m_sCacheExpires     = expire_date.Format(wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
@@ -1250,7 +1250,7 @@ void serverPage::EnableCaching(wxDateTime expire_date) {
 void serverPage::EnableCaching(wxTimeSpan expire_span) {
     wxDateTime      expire_date = wxDateTime::Now() + expire_span;
 
-    D(debug("serverPage::EnableCaching(%s)\n", expire_span.Format(wxDefaultTimeSpanFormat).c_str()));
+    //D(debug("serverPage::EnableCaching(%s)\n", expire_span.Format(wxDefaultTimeSpanFormat).c_str()));
 
     m_bEnableCaching    = true;
     m_sCacheExpires     = expire_date.Format(wxT("%a, %d %b %Y %T GMT") , wxDateTime::UTC );
@@ -1263,7 +1263,7 @@ void serverPage::EnableCaching(wxTimeSpan expire_span) {
  */
 
 void serverPage::DisableCaching() {
-    D(debug("serverPage::DisableCaching()\n"));
+    //D(debug("serverPage::DisableCaching()\n"));
 
     m_bEnableCaching  = false;
     m_sCacheExpires.Clear();
@@ -1277,7 +1277,7 @@ void serverPage::DisableCaching() {
 
 void serverPage::AddJavascriptLink(wxString sScriptName) {
     wxString sText;
-    D(debug("serverPage::AddJavascriptLink(%s)\n", sScriptName.c_str()));
+    //D(debug("serverPage::AddJavascriptLink(%s)\n", sScriptName.c_str()));
 
     sText = wxT("<script type=\"text/javascript\" src=\"") + sScriptName + wxT("\"></script>\n");
 
@@ -1324,7 +1324,7 @@ void serverPage::Dump(FILE* fOut)
 serverCatalog::serverCatalog()
 {
     // ctor
-    D(debug("serverCatalog::serverCatalog()\n"));
+    //D(debug("serverCatalog::serverCatalog()\n"));
 }
 
 /**
@@ -1334,7 +1334,7 @@ serverCatalog::serverCatalog()
 serverCatalog::~serverCatalog()
 {
     // dtor
-    D(debug("serverCatalog::~serverCatalog()\n"));
+    //D(debug("serverCatalog::~serverCatalog()\n"));
 }
 
 /**
@@ -1343,8 +1343,8 @@ serverCatalog::~serverCatalog()
 
 void serverCatalog::AddPage(serverPage& newPage)
 {
-    D(debug("serverCatalog::AddPage(...)\n"));
-    D(debug("-- adding page name [%s]\n", newPage.GetPageName().c_str()));
+    //D(debug("serverCatalog::AddPage(...)\n"));
+    //D(debug("-- adding page name [%s]\n", newPage.GetPageName().c_str()));
 
     m_pages[newPage.GetPageName()] = newPage;
 
@@ -1370,10 +1370,10 @@ bool serverCatalog::PageExists(wxString sPageName)
 {
     bool bRes = false;
 
-    D(debug("serverCatalog::PageExists(%s)\n", sPageName.c_str()));
+    //D(debug("serverCatalog::PageExists(%s)\n", sPageName.c_str()));
 
     if (m_pages.find(sPageName) != m_pages.end()) {
-        D(debug("-- found page!\n"));
+        //D(debug("-- found page!\n"));
         bRes = true;
     }
 
@@ -1388,7 +1388,7 @@ bool serverCatalog::GetPageArray(wxArrayString& sNameArray)
 {
     PAGE_HASH::iterator pIter;
 
-    D(debug("serverCatalog::GetPageArray(...)\n"));
+    //D(debug("serverCatalog::GetPageArray(...)\n"));
 
     sNameArray.Clear();
 

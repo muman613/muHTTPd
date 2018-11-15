@@ -12,7 +12,7 @@ myTable::myTable(int rows, int cols)
     m_border(0)
 {
     //ctor
-    D(debug("myTable::myTable(%d, %d)\n", rows, cols));
+    D(debug(wxT("myTable::myTable(%d, %d)\n"), rows, cols));
 
     m_cells = new  myCell[rows * cols];
     m_rowClass = new wxString[rows];
@@ -93,7 +93,7 @@ void myTable::dump()
         for (int col = 0 ; col < m_cols ; col++) {
             myCell&     thisCell = cell(row, col);
 
-            printf("row %d col %d : %s\n", row, col, thisCell.m_sText.c_str());
+            printf("row %d col %d : %s\n", row, col, static_cast<const char *>(thisCell.m_sText));
         }
     }
 }

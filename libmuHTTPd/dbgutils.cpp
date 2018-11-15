@@ -41,8 +41,7 @@ void debug(const wxChar* sFMT, ...)
         wxMutexLocker   lock(*dbgMutex);
 
         va_start(args, sFMT);
-        vsprintf(dbgBuffer, sFMT, args);
-
+        wxVsprintf(dbgBuffer, sFMT, args);
     #ifdef  __WXMSW__
         OutputDebugString(dbgBuffer);
     #else

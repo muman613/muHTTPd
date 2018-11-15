@@ -65,13 +65,13 @@ wxString GetMimeFromExtenstion(wxString sExtension)
 {
     wxString sMimeType = sMimeText;
 
-    D(debug("GetMimeFromExtension(%s)\n", sExtension.c_str()));
+    D(debug(wxT("GetMimeFromExtension(%s)\n"), static_cast<const char *>(sExtension)));
 
     MIME_TABLE_ENTRY*       pEntry = mimeTable;
 
     while (pEntry->extension != 0) {
         if (sExtension.CmpNoCase( *pEntry->extension ) == 0) {
-            D(debug("-- found extension... Type is %s\n", pEntry->mimetype->c_str()));
+            D(debug(wxT("-- found extension... Type is %s\n"), static_cast<const char *>(*pEntry->mimetype)));
             sMimeType = *pEntry->mimetype;
             break;
         }
@@ -90,7 +90,7 @@ bool        TestMimeType(wxString sType, TYPE_CATEGORY category)
     bool                bRes    = false;
     MIME_TABLE_ENTRY*   pEntry  = mimeTable;
 
-    D(debug("TestMimeType(%s, %d)\n", sType.c_str(), (int) category));
+    D(debug(wxT("TestMimeType(%s, %d)\n"), static_cast<const char *>(sType), (int) category));
 
     while (pEntry->extension != 0) {
         if (sType.CmpNoCase( *pEntry->mimetype ) == 0) {

@@ -69,11 +69,11 @@ wxString muRequest::FindQuery(wxString sName) {
  */
 
 const myAttachment* muRequest::FindAttach(wxString sName) {
-    D(debug("Request::FindAttach(%s)\n", sName.c_str()));
+    D(debug(wxT("Request::FindAttach(%s)\n"), static_cast<const char *>(sName)));
 
     for (size_t x = 0 ; x < m_attached.Count() ; x++) {
         if (m_attached[x]->name() == sName) {
-            D(debug("-- attachment found!\n"));
+            D(debug(wxT("-- attachment found!\n")));
             return m_attached[x];
         }
     }
@@ -143,7 +143,7 @@ void muHTTPdThread::parse_request()
     wxString    sLine, sQuery;
     int         nPos;
 
-    D(debug("muHTTPdThread::parse_request()\n"));
+    D(debug(wxT("muHTTPdThread::parse_request()\n")));
 
     m_method.Clear();
     m_url.Clear();
@@ -151,7 +151,7 @@ void muHTTPdThread::parse_request()
     m_useragent.Clear();
     m_host.Clear();
 
-    D(debug("-- found %ld lines\n", m_requestArray.Count()));
+    D(debug(wxT("-- found %ld lines\n"), m_requestArray.Count()));
 
     /* parse the HTTP request. */
     wxStringTokenizer tokens(m_requestArray[0], wxT(" "));
@@ -171,7 +171,7 @@ void muHTTPdThread::parse_request()
         sQuery  = m_url.Mid(nPos + 1);
         m_url   = m_url.Mid(0, nPos);
 
-        D(debug("-- query string = %s\n", sQuery.c_str()));
+        D(debug(wxT("-- query string = %s\n"), static_cast<const char *>(sQuery)));
 
         wxStringTokenizer qryToke( sQuery, wxT("&") );
 
@@ -179,13 +179,13 @@ void muHTTPdThread::parse_request()
             wxString sPair = qryToke.GetNextToken();
             wxString sID, sVal;
 
-            D(debug("found token %s\n", sPair.c_str()));
+            D(debug(wxT("found token %s\n"), static_cast<const char *>(sPair)));
 
             if ((nPos = sPair.Find('=')) != wxNOT_FOUND) {
                 sID  = sPair.Mid(0, nPos);
                 sVal = sPair.Mid(nPos + 1);
 
-                D(debug("query id %s val %s\n", sID.c_str(), sVal.c_str()));
+                D(debug(wxT("query id %s val %s\n"), static_cast<const char *>(sID), static_cast<const char *>(sVal)));
                 myQuery newQuery( sID, sVal );
 
                 m_Request.m_queries.Add( newQuery );
@@ -211,19 +211,20 @@ void muHTTPdThread::parse_request()
             sHdrValue = sLine.Mid(nPos + 1).Trim(false);
 
             if (sHdrName.CmpNoCase(wxT("Cookie")) != 0) {
-                D(debug("\tHeader [%s] Value [%s]\n", sHdrName.c_str(),
+                D(debug(wxT("\tHeader [%s] Value [%s]\n"), sHdrName.c_str(),
                                                       sHdrValue.c_str()));
                 m_Request.m_headers[sHdrName] = sHdrValue;    // Store in the hash.
             } else {
                 wxStringTokenizer ckeToke(sHdrValue, wxT("=;"));
                 wxString sCookieID, sCookieVal;
 
-                D(debug("-- handling cookie header!\n"));
+                D(debug(wxT("-- handling cookie header!\n")));
                 while (ckeToke.HasMoreTokens()) {
                     sCookieID = ckeToke.GetNextToken().Trim(false);
                     sCookieVal = ckeToke.GetNextToken().Trim(false);
 
-                    D(debug("cookie id [%s] value [%s]\n", sCookieID.c_str(), sCookieVal.c_str()));
+                    D(debug(wxT("cookie id [%s] value [%s]\n"), static_cast<const char *>(sCookieID), 
+                        static_cast<const char *>(sCookieVal)));
 
                     /* Add the cookie to the request cookie-array */
                     myCookie newCookie( sCookieID, sCookieVal );
@@ -237,8 +238,9 @@ void muHTTPdThread::parse_request()
     m_host      = m_Request.FindHost();
     m_useragent = m_Request.FindUserAgent();
 
-    D(debug("  Request for host : %s\n"
-            "Request from agent : %s\n", m_host.c_str(), m_useragent.c_str()));
+    D(debug(wxT("  Request for host : %s\n  Request from agent : %s\n"), 
+        static_cast<const char *>(m_host), 
+        static_cast<const char *>(m_useragent)));
 
     return;
 }
@@ -249,7 +251,7 @@ void muHTTPdThread::parse_request()
 
 void muHTTPdThread::Clear()
 {
-    D(debug("muHTTPdThread::Clear()\n"));
+    D(debug(wxT("muHTTPdThread::Clear()\n")));
 
     m_requestArray.Clear();
     m_Request.m_cookies.Clear();
@@ -272,16 +274,16 @@ bool muHTTPdThread::handle_attachment( wxString sData )
 {
     myAttachment*   pNewAttachment;
 
-    D(debug("handle_attachment()\n"));
+    D(debug(wxT("handle_attachment()\n")));
 
     pNewAttachment = new myAttachment( sData );
     wxASSERT( pNewAttachment != 0L);
 
     m_Request.m_attached.Add( pNewAttachment );
 
-    D(debug("--  attachment name [%s] of type [%s]\n",
-            pNewAttachment->name().c_str(),
-            pNewAttachment->type().c_str()));
+    D(debug(wxT("--  attachment name [%s] of type [%s]\n"),
+            static_cast<const char *>(pNewAttachment->name()),
+            static_cast<const char *>(pNewAttachment->type())));
 
     return true;
 }
@@ -295,7 +297,7 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
     bool bDone = false;
     wxString sLine;
 
-    D(debug("muHTTPdThread::receive_request(%p)\n", pSocket));
+    D(debug(wxT("muHTTPdThread::receive_request(%p)\n"), pSocket));
 
     pSocket->SaveState();
     pSocket->SetFlags( wxSOCKET_NOWAIT );
@@ -320,7 +322,7 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
             }
             }
         } else {
-            D(debug("-- NO DATA!\n"));
+            D(debug(wxT("-- NO DATA!\n")));
             bDone = true;
             goto exitReceive;
         }
@@ -359,7 +361,7 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
                 }
             }
 
-            D(debug("-- reading POST data...\n"));
+            D(debug(wxT("-- reading POST data...\n")));
 
             char tBuffer[1024];
             wxUint32 tBread = 0;
@@ -376,8 +378,8 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
                 tBread += nBread;
             }
 
-            D(debug("--- tBread %d\n", tBread));
-            D(debug("--- SBUFFER SIZE %d\n", sBuffer.Length()));
+            D(debug(wxT("--- tBread %d\n"), tBread));
+            D(debug(wxT("--- SBUFFER SIZE %d\n"), sBuffer.Length()));
 
             size_t          beginPos = -1, endPos = -1, curPos = 0;
             wxString*       pSearchFor = &sBoundry;
@@ -416,7 +418,7 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
                 }
                 wxString sData = sBuffer.Mid( beginPos, endPos - beginPos -2 );
 
-                D(debug("Attachment size %d\n", sData.Length()));
+                D(debug(wxT("Attachment size %d\n"), sData.Length()));
 
                 handle_attachment( sData );
 
@@ -437,7 +439,7 @@ bool muHTTPdThread::receive_request(wxSocketBase* pSocket) {
             }
 #endif
 
-            D(debug("\nOK!\n"));
+            D(debug(wxT("\nOK!\n")));
         }
 
         bRes = true;
@@ -462,7 +464,7 @@ void muHTTPdThread::handle_connection(wxSocketBase* pSocket)
     wxSockAddress   *localInfo = 0L,
                     *peerInfo = 0L;
 
-    D(debug("muHTTPdThread::handle_connection(%p)\n", pSocket));
+    D(debug(wxT("muHTTPdThread::handle_connection(%p)\n"), pSocket));
 
     /* Determine connection peer */
     localInfo = new wxIPV4address;
@@ -484,7 +486,9 @@ void muHTTPdThread::handle_connection(wxSocketBase* pSocket)
         m_sPeerHost = wxEmptyString;
     }
 
-    D(debug("Connection received from %s:%s\n", m_sPeerHost.c_str(), m_sPeerPort.c_str()));
+    D(debug(wxT("Connection received from %s:%s\n"), 
+        static_cast<const char *>(m_sPeerHost), 
+        static_cast<const char *>(m_sPeerPort)));
 
     while (!bDone && !TestDestroy()) {
         if (pSocket->WaitForRead(0, 1000)) {
@@ -492,11 +496,11 @@ void muHTTPdThread::handle_connection(wxSocketBase* pSocket)
             Clear();
 
             if (receive_request( pSocket )) {
-                D(debug("HTTP request [%s]\n", m_requestArray[0].c_str()));
-                D(debug("method %s url %s version %s\n",
-                        m_method.c_str(),
-                        m_url.c_str(),
-                        m_reqver.c_str()));
+                D(debug(wxT("HTTP request [%s]\n"), static_cast<const char *>(m_requestArray[0])));
+                D(debug(wxT("method %s url %s version %s\n"),
+                        static_cast<const char *>(m_method),
+                        static_cast<const char *>(m_url),
+                        static_cast<const char *>(m_reqver)));
 
                 m_pParent->LogMessage( muHTTPd::LOG_MSG,
                                        wxString::Format(wxT("%s %s %s from %s.%s (%s)"),
@@ -540,12 +544,12 @@ void muHTTPdThread::handle_get_method(wxSocketBase* pSocket)
 {
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
-    D(debug("handle_get_method()\n"));
+    D(debug(wxT("handle_get_method()\n")));
 
     if (pPage != 0L) {
         pPage->Send(pSocket);
     } else {
-        D(debug("-- requested invalid page %s\n", m_url.c_str()));
+        D(debug(wxT("-- requested invalid page %s\n"), static_cast<const char *>(m_url)));
         ReturnError(pSocket, 404, (char *)"Not Found");
 
         m_pParent->LogMessage( muHTTPd::LOG_WARN,
@@ -564,12 +568,12 @@ void muHTTPdThread::handle_post_method(wxSocketBase* pSocket)
 {
     serverPage* pPage = m_pParent->GetPage( m_url, &m_Request );
 
-    D(debug("handle_post_method()\n"));
+    D(debug(wxT("handle_post_method()\n")));
 
     if (pPage != 0L) {
         pPage->Send(pSocket);
     } else {
-        D(debug("-- requested invalid page %s\n", m_url.c_str()));
+        D(debug(wxT("-- requested invalid page %s\n"), static_cast<const char *>(m_url)));
         ReturnError(pSocket, 404, (char *)"Not Found");
 
         m_pParent->LogMessage( muHTTPd::LOG_WARN,
@@ -589,7 +593,7 @@ void muHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* descripti
     wxString sResponseHeader, sResponseHTML;
     serverPage* p404Page = 0L;
 
-    D(debug("muHTTPdThread::ReturnError(%p, %d, %s)\n", pSocket, code, description));
+    D(debug(wxT("muHTTPdThread::ReturnError(%p, %d, %s)\n"), pSocket, code, description));
 
     if ((code == 404) && ((p404Page = m_pParent->Get404Page()) != 0L)) {
         sResponseHTML = p404Page->HTML();
@@ -609,7 +613,7 @@ void muHTTPdThread::ReturnError(wxSocketBase* pSocket, int code, char* descripti
                            "content-length: %ld\r\n\r\n%s",
                            code, description, strlen(description), description );
         pSocket->Write(response, strlen(response));
-        D(debug("404 response string = %s\n", response));
+        D(debug(wxT("404 response string = %s\n"), response));
     }
 
 	return;
@@ -624,7 +628,7 @@ wxThread::ExitCode muHTTPdThread::Entry()
     bool                bDone = false;
     wxIPV4address       addr;
 
-    D(debug("muHTTPdThread::Entry()\n"));
+    D(debug(wxT("muHTTPdThread::Entry()\n")));
 
     addr.AnyAddress();
     addr.Service(m_portNum);
@@ -633,14 +637,14 @@ wxThread::ExitCode muHTTPdThread::Entry()
     assert(m_sockServer != 0L);
 
     if (!m_sockServer->IsOk()) {
-        D(debug("ERROR: Unable to create server socket!\n"));
+        D(debug(wxT("ERROR: Unable to create server socket!\n")));
         return (ExitCode)-10;
     }
 
     while (!bDone) {
 
         if (TestDestroy()) {
-            D(debug("-- got destroy message!\n"));
+            D(debug(wxT("-- got destroy message!\n")));
             bDone = true;
             continue;
         }
@@ -648,7 +652,7 @@ wxThread::ExitCode muHTTPdThread::Entry()
         if (m_sockServer->WaitForAccept(0, 1000)) {
             wxSocketBase*       pSocket = m_sockServer->Accept(false);
 
-            D(debug("-- connection is waiting!!!\n"));
+            D(debug(wxT("-- connection is waiting!!!\n")));
 
             handle_connection(pSocket);
 
@@ -664,7 +668,7 @@ wxThread::ExitCode muHTTPdThread::Entry()
     delete m_sockServer;
     m_sockServer = 0L;
 
-    D(debug("-- server thread exiting!\n"));
+    D(debug(wxT("-- server thread exiting!\n")));
 
     return 0;
 }
@@ -713,7 +717,7 @@ bool muHTTPd::SetPort(int portNum)
 {
     bool bRes = false;
 
-    D(debug("muHTTPd::SetPort(%d)\n", portNum));
+    D(debug(wxT("muHTTPd::SetPort(%d)\n"), portNum));
 
     if (m_serverThread != 0L) {
         m_nPort = portNum;
@@ -728,7 +732,7 @@ bool muHTTPd::SetPort(int portNum)
  */
 
 void muHTTPd::CloseLogFile() {
-    D(debug("muHTTPd::CloseLogFile()\n"));
+    D(debug(wxT("muHTTPd::CloseLogFile()\n")));
 
     if (m_pLogFile) {
         if (m_pLogFile->IsOpened()) {
@@ -754,19 +758,19 @@ bool muHTTPd::SetLogFile(wxString sLogFilename, bool bAppend)
     wxFile::OpenMode    logMode = (bAppend == true)?wxFile::write_append:
                                                     wxFile::write;
 
-    D(debug("muHTTPd::SetLogFile(%s)\n", sLogFilename.c_str()));
+    D(debug(wxT("muHTTPd::SetLogFile(%s)\n"), static_cast<const char *>(sLogFilename)));
 
     CloseLogFile(); // Close any existing log file.
 
     m_pLogFile = new wxFile( sLogFilename, logMode );
 
     if (m_pLogFile->IsOpened()) {
-        D(debug("-- logfile opened and ready to write!\n"));
+        D(debug(wxT("-- logfile opened and ready to write!\n")));
 
         m_sLogFilename = sLogFilename;
         bRes = true;
     } else {
-        D(debug("-- unable to open log file!\n"));
+        D(debug(wxT("-- unable to open log file!\n")));
 
         delete m_pLogFile;
         m_pLogFile = 0L;
@@ -821,7 +825,7 @@ bool muHTTPd::Start()
     bool            bRes        = false;
     muHTTPdThread*  pNewThread  = 0L;
 
-    D(debug("myHTTPD::Start()\n"));
+    D(debug(wxT("myHTTPD::Start()\n")));
 
     pNewThread = new muHTTPdThread(this, m_nPort);
 
@@ -846,7 +850,7 @@ bool muHTTPd::Start()
 
 bool muHTTPd::Stop()
 {
-    D(debug("myHTTPD::Stop()\n"));
+    D(debug(wxT("myHTTPD::Stop()\n")));
 
     if (m_serverThread != 0L) {
         m_serverThread->Delete();
@@ -871,7 +875,8 @@ bool muHTTPd::AddPage(serverPage& page)
 {
     bool bRes = false;
 
-    D(debug("muHTTPd::AddPage(name=%s)\n", page.GetPageName().c_str()));
+    D(debug(wxT("muHTTPd::AddPage(name=%s)\n"), 
+        static_cast<const char *>(page.GetPageName())));
 
     if ( !PageExists( page.GetPageName() ) ) {
         page.server(this);              // set the server pointer...
@@ -888,7 +893,7 @@ bool muHTTPd::AddPage(serverPage& page)
 
 serverPage* muHTTPd::GetPage(wxString sPageName, muRequest* pRequest)
 {
-    D(debug("muHTTPd::GetPage(%s)\n", sPageName.c_str()));
+    D(debug(wxT("muHTTPd::GetPage(%s)\n"), static_cast<const char *>(sPageName)));
     return m_catalog.GetPage( sPageName, pRequest );
 }
 
@@ -897,7 +902,7 @@ serverPage* muHTTPd::GetPage(wxString sPageName, muRequest* pRequest)
  */
 
 bool muHTTPd::PageExists(wxString sPageName) {
-    D(debug("muHTTPd::PageExists(%s)\n", sPageName.c_str()));
+    D(debug(wxT("muHTTPd::PageExists(%s)\n"), static_cast<const char *>(sPageName)));
     return m_catalog.PageExists( sPageName );
 }
 
@@ -906,7 +911,7 @@ bool muHTTPd::PageExists(wxString sPageName) {
  */
 
 void muHTTPd::Set404Page(serverPage& page) {
-    D(debug("muHTTPd::Set404Page(...)\n"));
+    D(debug(wxT("muHTTPd::Set404Page(...)\n")));
 
     if (m_p404Page != 0L) {
         delete m_p404Page;

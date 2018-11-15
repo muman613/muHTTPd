@@ -8,10 +8,10 @@
 WX_CONFIG ?= wx-config
 
 ifdef DEBUG
-	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=yes)
-	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs --unicode=no --debug=yes)
+	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags  --debug=yes)
+	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs  --debug=yes)
 else
-	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags --unicode=no --debug=no)
-	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs --unicode=no --debug=no)
+	WX_CFLAGS=$(shell $(WX_CONFIG) --cflags  --debug=no)
+	WX_LDFLAGS=$(shell $(WX_CONFIG) --libs  --debug=no)
 endif
 

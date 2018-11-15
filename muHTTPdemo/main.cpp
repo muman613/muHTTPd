@@ -28,7 +28,7 @@ IMPLEMENT_APP(muHTTPdemoApp)
  */
 
 void    signal_sigint_handler(int signum) {
-    D(debug("signal_sigint_handler(%d)\n", signum));
+    D(debug(wxT("signal_sigint_handler(%d)\n"), signum));
 
     bDone = true;
 
@@ -134,6 +134,8 @@ bool muHTTPdemoApp::OnInit() {
 
 int muHTTPdemoApp::OnRun() {
     muHTTPd         webServer(m_nPort);
+
+    wxSocketBase::Initialize();
 
     webServer.SetLogFile( wxT("/tmp/muHTTPd.log") );
 

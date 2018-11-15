@@ -290,7 +290,7 @@ bool myStyleSheet::DumpToFile(FILE* oFP) {
 
         if (GetCSS( cssSheet )) {
             for (size_t i = 0 ; i < cssSheet.Count() ; i++) {
-                fprintf(oFP, "%s\n", cssSheet[i].c_str());
+                fprintf(oFP, "%s\n", static_cast<const char *>(cssSheet[i]));
             }
             bRes = true;
         }

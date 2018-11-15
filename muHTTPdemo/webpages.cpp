@@ -23,7 +23,7 @@ wxString generate_table() {
     myTable     table(4,2);
     wxString    sHTML;
 
-    D(debug("generate_table()\n"));
+    D(debug(wxT("generate_table()\n")));
 
     table.set_border(1);
     table.set_caption( wxT("Information Matrix") );
@@ -69,7 +69,7 @@ bool table_stub(serverPage* pPage, muRequest* pRequest) {
  */
 
 bool page2_stub(serverPage* pPage, muRequest* pRequest) {
-    D(debug("page2_stub(%p, %p)\n", pPage, pRequest));
+    D(debug(wxT("page2_stub(%p, %p)\n"), pPage, pRequest));
 
     pPage->Clear();
 
@@ -77,7 +77,7 @@ bool page2_stub(serverPage* pPage, muRequest* pRequest) {
 
     size_t numCookies = pRequest->m_cookies.Count();
 
-    D(debug("found %d cookies!\n", numCookies));
+    D(debug(wxT("found %d cookies!\n"), numCookies));
 
     myTable table(numCookies, 2);
 
@@ -99,7 +99,7 @@ bool page2_stub(serverPage* pPage, muRequest* pRequest) {
  */
 
 bool page3_stub(serverPage* pPage, muRequest* pRequest) {
-    D(debug("index_stub(%p)\n", pPage));
+    D(debug(wxT("index_stub(%p)\n"), pPage));
 
     pPage->Clear();
     //pPage->AddToHead("<style> a { font-size: 18pt; }</style>");
@@ -141,7 +141,7 @@ bool add_image_page(muHTTPd* pServer, wxString pageName, wxString sMimeType,
  */
 
 bool submit_stub(serverPage* pPage, muRequest* pRequest) {
-    D(debug("submit_stub()\n"));
+    //D(debug("submit_stub()\n"));
     wxString                sName,
     sFilename,
     sUploadType;
@@ -229,7 +229,7 @@ const char* sz404Text = \
 
 void add_404_page( muHTTPd* pServer) {
     serverPage* pNewPage;
-    D(debug("add_404_page()\n"));
+    //D(debug("add_404_page()\n"));
 
     pNewPage = new serverPage(wxT("/404.html"));
 
@@ -293,7 +293,7 @@ void init_style_sheet(myStyleSheet& sheet) {
 bool index_stub(serverPage* page, muRequest* pRequest) {
     HTML::HTMLOpts opts;
 
-    D(debug("index_stub()\n"));
+    //D(debug("index_stub()\n"));
 
     opts.m_sOnClick = wxT("return confirm_stop();");
 
@@ -353,7 +353,7 @@ void add_javascript_page(muHTTPd* pServer) {
 void add_serverpages(muHTTPd* pServer) {
     serverPage*     page;
 
-    D(debug("add_serverpages()\n"));
+    //D(debug("add_serverpages()\n"));
 
     init_style_sheet( sheet );
 
