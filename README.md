@@ -1,7 +1,6 @@
-README
-======
+# README
 
-Simple webserver written for wxWidgets. Useful for web apps written in C++.
+`muHTTPDd` is a simple webserver written for wxWidgets. It is useful for web apps written in C++ which need to serve static HTTP documents.
 
 Handles minimal HTTP/1.1 protocol GET/POST methods.
 
@@ -12,7 +11,7 @@ Handles minimal HTTP/1.1 protocol GET/POST methods.
 * Created *static library*                  (DONE)
 * Renamed project from myHTTPd to muHTTPd.  (DONE)
 
-TODO
+## TODO
 ----
 
 * Complete CSS styles for pages.
@@ -20,8 +19,21 @@ TODO
 * Provide special classes for each page type.
 * Implement basic session system.
 
-### ENVIRONMENT
+## Environment
 
 The myHTTPd project was developed using the Code::Blocks IDE and the wxWidgets
 cross-platform GUI library.
 
+## Building the Project
+
+    git clone https://github.com/muman613/muHTTPd
+    cd libmuHTTPd
+    make -j X # Set X to the # of processes to use to build
+    cd ../muHTTPdemo
+    make -j X # Set X to the # of processes to use to build
+    ./bin/Release/muHTTPdemo
+
+This will start the HTTP server running. Open a web-browser on your machine and navigate to http://localhost:8080 and you should see the demo web page. 
+
+## Display of the muHTTPdemo
+![Alt Text](doc/images/screenshot1.png)
